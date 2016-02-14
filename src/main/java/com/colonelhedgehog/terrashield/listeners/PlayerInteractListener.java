@@ -33,8 +33,15 @@ public class PlayerInteractListener implements Listener
     {
         ZoneHandler zoneHandler = plugin.getZoneHandler();
 
-        if(!zoneHandler.isZoneMarkerTool(event.getItem()))
+        if (!zoneHandler.isZoneMarkerTool(event.getItem()))
         {
+            return;
+        }
+        Player player = event.getPlayer();
+
+        if(!player.hasPermission("terrashield.tool"))
+        {
+            player.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use the §6Zone Marker Tool§c!");
             return;
         }
 
@@ -43,7 +50,6 @@ public class PlayerInteractListener implements Listener
         int maxZoneCount = plugin.getConfig().getInt("Settings.Limits.Count");
         TSPlayerHandler playerHandler = plugin.getTSPlayerHandler();
 
-        Player player = event.getPlayer();
         TSPlayer tsPlayer = playerHandler.getTSPlayer(event.getPlayer());
 
         boolean hasZones = true;
@@ -93,15 +99,37 @@ public class PlayerInteractListener implements Listener
             location2 = new TSLocation(event.getClickedBlock().getLocation());
         }
 
-        if(location1 == null)
+        player.sendMessage("§e§lLocation set. §aCurrent zone cuboid selection is:");
+
+        boolean bothNotSet = false;
+
+        if (location1 != null)
         {
-            return;
+            player.sendMessage("§8- §6Corner #1: §eX: §a" + location1.getX() + "§e, Y: §a" + location1.getY() + "§e, Z: §a" + location1.getZ());
         }
-        else if(location2 == null)
+        else
+        {
+            player.sendMessage("§8- §4Corner #2: §cNot set. §eRight click §cwith the §6Zone Marker Tool§c.");
+            bothNotSet = true;
+        }
+
+        if (location2 != null)
+        {
+            player.sendMessage("§8- §6Corner #2: §eX: §a" + location2.getX() + "§e, Y: §a" + location2.getY() + "§e, Z: §a" + location2.getZ());
+        }
+        else
+        {
+            player.sendMessage("§8- §4Corner #2: §cNot set. §eLeft click §cwith the §6Zone Marker Tool§c.");
+            bothNotSet = true;
+        }
+
+
+        if (bothNotSet)
         {
             return;
         }
 
-        player.sendMessage(TerraShield.Prefix + "§aYou have created a zone selection. Now you can use §e/ts zone create <name> §ato");
+        player.sendMessage(TerraShield.Prefix + "§aYou have created a zone selection. " +
+                "Now you can use §e/ts zone create <name> §ato create it as a TerraShield zone.");
     }
 }

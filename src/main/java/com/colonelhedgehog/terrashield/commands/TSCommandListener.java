@@ -25,7 +25,12 @@ public class TSCommandListener implements CommandExecutor
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
     {
-        // The ChatColor enum is for the weak!
+        if(!sender.hasPermission("terrashield.command"))
+        {
+            sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + "§c!");
+            return false;
+        }
+
         if (!(sender instanceof Player))
         {
             sender.sendMessage(TerraShield.Prefix + "§4Error: §cThis command is meant for players only.");
