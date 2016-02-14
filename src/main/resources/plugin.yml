@@ -1,0 +1,4 @@
+name: TerraShield
+core: com.colonelhedgehog.terrashield.core.TerraShield
+version: 0.0.1
+description: A simple anti-grief protection plugin.
