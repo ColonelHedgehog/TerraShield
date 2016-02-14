@@ -4,6 +4,7 @@ import com.colonelhedgehog.terrashield.components.TSPlayer;
 import com.colonelhedgehog.terrashield.components.zone.Zone;
 import com.colonelhedgehog.terrashield.components.zone.ZoneRole;
 import com.colonelhedgehog.terrashield.core.TerraShield;
+import com.colonelhedgehog.terrashield.utils.TSLocation;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -119,5 +120,22 @@ public class ZoneHandler
         }
 
         return zones;
+    }
+
+    /**
+     * Checks zones against other ones to see if it overlaps.
+     * Would be pretty stupid to make this run on the Bukkit thread lol.
+     * @param location1 Corner #1.
+     * @param location2 Corner #2.
+     */
+    public boolean verify(TSLocation location1, TSLocation location2)
+    {
+        for(Zone zone : zones)
+        {
+            if(zone.getStartLocation().getWorldUID() != location1.getWorldUID())
+            {
+                continue;
+            }
+        }
     }
 }

@@ -39,7 +39,7 @@ public class PlayerInteractListener implements Listener
         }
         Player player = event.getPlayer();
 
-        if(!player.hasPermission("terrashield.tool"))
+        if (!player.hasPermission("terrashield.tool"))
         {
             player.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use the §6Zone Marker Tool§c!");
             return;

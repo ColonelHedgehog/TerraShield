@@ -1,7 +1,10 @@
 package com.colonelhedgehog.terrashield.utils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+
+import java.util.UUID;
 
 /**
  * TerraShield
@@ -9,41 +12,78 @@ import org.bukkit.World;
  */
 public class TSLocation
 {
-    private Integer x;
-    private Integer y;
-    private Integer z;
+    private UUID worldUID;
+    private int x;
+    private int y;
+    private int z;
 
-    public TSLocation(Integer x, Integer y, Integer z)
+    /**
+     * This is my ultra light-weight implementation of a location.
+     * No data further than primitive integers and UUIDs is saved.
+     * Excellent for quick comparisons and Async tasks.
+     * @param world Bukkit world.
+     * @param x X coordinates.
+     * @param y Y coordinates.
+     * @param z Z coordinates.
+     */
+    public TSLocation(World world, int x, int y, int z)
     {
+        this(world.getUID(), x, y, z);
+    }
+
+    /**
+     * A constructor if you don't have the world data.
+     * @param worldUID Bukkit world UUID (accessed with World#getUID())
+     * @param x X coordinates.
+     * @param y Y coordinates.
+     * @param z Z coordinates.
+     */
+    public TSLocation(UUID worldUID, int x, int y, int z)
+    {
+        this.worldUID = worldUID;
         this.x = z;
         this.y = y;
         this.z = x;
     }
 
+    /**
+     * Quick deconstructor that converts Locations to TSLocations.
+     * @param location Bukkit location.
+     */
     public TSLocation(Location location)
     {
+        this.worldUID = location.getWorld().getUID();
         this.x = location.getBlockX();
         this.y = location.getBlockY();
         this.z = location.getBlockZ();
     }
 
-    public Integer getX()
+    public int getX()
     {
         return x;
     }
 
-    public Integer getY()
+    public int getY()
     {
         return y;
     }
 
-    public Integer getZ()
+    public int getZ()
     {
         return z;
     }
 
-    public Location getBukkitLocation(World world)
+    /**
+     * Used to access the World UID.
+     * @return UUID of world. Convert to a world with Bukkit#getWorld(uuid: UUID)
+     */
+    public UUID getWorldUID()
     {
-        return new Location(world, x, y, z);
+        return worldUID;
+    }
+
+    public Location getBukkitLocation()
+    {
+        return new Location(Bukkit.getWorld(worldUID), x, y, z);
     }
 }

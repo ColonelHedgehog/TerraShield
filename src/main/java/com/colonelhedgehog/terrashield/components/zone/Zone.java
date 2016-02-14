@@ -7,10 +7,7 @@ import com.colonelhedgehog.terrashield.utils.TSLocation;
 import org.bukkit.Location;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * TerraShield
@@ -36,8 +33,8 @@ public class Zone implements Iterable<TSLocation>
     public Zone(Location start, Location end)
     {
         // the this() call must be the first statement. :(
-        this(new TSLocation(start.getBlockX(), start.getBlockY(), start.getBlockZ()),
-                new TSLocation(end.getBlockX(), end.getBlockY(), end.getBlockZ()));
+        this(new TSLocation(start.getWorld(), start.getBlockX(), start.getBlockY(), start.getBlockZ()),
+                new TSLocation(end.getWorld(), end.getBlockX(), end.getBlockY(), end.getBlockZ()));
     }
 
     public Zone(TSLocation start, TSLocation end)
@@ -137,7 +134,7 @@ public class Zone implements Iterable<TSLocation>
         int z1 = start.getZ();
         int z2 = end.getZ();
 
-        return new ZoneIterator(x1, y1, z1, x2, y2, z2);
+        return new ZoneIterator(start.getWorldUID(), x1, y1, z1, x2, y2, z2);
     }
 
     public boolean hasAccessToFlag(TSZoneMember member, String flag)
@@ -220,12 +217,14 @@ public class Zone implements Iterable<TSLocation>
 
     private class ZoneIterator implements Iterator<TSLocation>
     {
+        private UUID worldUID;
         private int baseX, baseY, baseZ;
         private int x, y, z;
         private int sizeX, sizeY, sizeZ;
 
-        public ZoneIterator(int x1, int y1, int z1, int x2, int y2, int z2)
+        public ZoneIterator(UUID worldUID, int x1, int y1, int z1, int x2, int y2, int z2)
         {
+            this.worldUID = worldUID;
             this.baseX = x1;
             this.baseY = y1;
             this.baseZ = z1;
@@ -238,7 +237,6 @@ public class Zone implements Iterable<TSLocation>
             this.z = 0;
         }
 
-
         public boolean hasNext()
         {
             return this.x < this.sizeX && this.y < this.sizeY && this.z < this.sizeZ;
@@ -246,7 +244,7 @@ public class Zone implements Iterable<TSLocation>
 
         public TSLocation next()
         {
-            TSLocation tsLocation = new TSLocation(this.baseX + this.x, this.baseY + this.y, this.baseZ + this.z);
+            TSLocation tsLocation = new TSLocation(this.worldUID, this.baseX + this.x, this.baseY + this.y, this.baseZ + this.z);
 
             if (++x >= this.sizeX)
             {
