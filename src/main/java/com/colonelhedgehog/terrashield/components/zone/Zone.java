@@ -4,6 +4,7 @@ import com.colonelhedgehog.terrashield.components.TSPlayer;
 import com.colonelhedgehog.terrashield.components.TSZoneMember;
 import com.colonelhedgehog.terrashield.core.TerraShield;
 import com.colonelhedgehog.terrashield.utils.TSLocation;
+import org.bson.Document;
 import org.bukkit.Location;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -18,10 +19,13 @@ public class Zone implements Iterable<TSLocation>
 {
     private TSLocation start;
     private TSLocation end;
+
+
     private ZoneFlagSet zoneFlagSet;
     private List<TSZoneMember> zoneMembers;
     private List<TSPlayer> bannedPlayers;
-
+    private String name;
+    private UUID uuid;
 
     /**
      * Converts two locations to the light, easy-to-use TSLocation
@@ -30,20 +34,36 @@ public class Zone implements Iterable<TSLocation>
      * @param end
      */
 
-    public Zone(Location start, Location end)
+    public Zone(UUID uuid, Location start, Location end)
     {
         // the this() call must be the first statement. :(
-        this(new TSLocation(start.getWorld(), start.getBlockX(), start.getBlockY(), start.getBlockZ()),
+        this(uuid, new TSLocation(start.getWorld(), start.getBlockX(), start.getBlockY(), start.getBlockZ()),
                 new TSLocation(end.getWorld(), end.getBlockX(), end.getBlockY(), end.getBlockZ()));
     }
 
-    public Zone(TSLocation start, TSLocation end)
+    public Zone(UUID uuid, TSLocation start, TSLocation end)
     {
         this.start = start;
         this.end = end;
         this.zoneFlagSet = new ZoneFlagSet();
         this.zoneMembers = new ArrayList<>();
         this.bannedPlayers = new ArrayList<>();
+        this.uuid = uuid == null ? UUID.randomUUID() : uuid;
+
+        if (start.getX() > end.getX())
+        {
+            int tempx = start.getX();
+
+            start.setX(end.getX());
+            end.setX(tempx);
+        }
+
+        if (start.getZ() < end.getZ())
+        {
+            int tempz = end.getZ();
+            end.setZ(start.getZ());
+            start.setZ(tempz);
+        }
     }
 
     /**
@@ -64,41 +84,49 @@ public class Zone implements Iterable<TSLocation>
         }.runTaskAsynchronously(TerraShield.getInstance());
     }
 
-    public HashMap<String, HashMap<String, Object>> serialize()
+    public Document serialize()
     {
-        HashMap<String, HashMap<String, Object>> map = new HashMap<>();
+        Document serialized = new Document();
 
-        HashMap<String, Object> startMap = new HashMap<>();
+        Document startMap = new Document();
+        startMap.put("worldUID", start.getWorldUID());
         startMap.put("x", start.getX());
         startMap.put("y", start.getY());
         startMap.put("z", start.getZ());
 
-        HashMap<String, Object> endMap = new HashMap<>();
+        Document endMap = new Document();
+        endMap.put("worldUID", end.getWorldUID());
         endMap.put("x", end.getX());
         endMap.put("y", end.getY());
         endMap.put("z", end.getZ());
 
-        HashMap<String, Object> membersWithRoles = new HashMap<>();
+        Document membersWithRoles = new Document();
 
         for (TSZoneMember member : zoneMembers)
         {
             membersWithRoles.put(member.getPlayer().getUUID().toString(), member.getRole().name());
         }
 
-        HashMap<String, Object> zoneFlags = new HashMap<>();
+        Document zoneFlags = new Document();
 
         for (ZoneFlagSet.ZoneFlag permission : zoneFlagSet.getZoneFlags())
         {
             zoneFlags.put(permission.getName(), permission.isAllPlayers() + "," + permission.isMembers() + "," + permission.isAdmins());
         }
 
+        serialized.put("name", name);
+        serialized.put("uuid", uuid.toString());
+        serialized.put("startLocation", startMap);
+        serialized.put("endLocation", endMap);
+        serialized.put("members", membersWithRoles);
+        serialized.put("flags", zoneFlags);
 
-        map.put("startLocation", startMap);
-        map.put("endLocation", endMap);
-        map.put("members", membersWithRoles);
-        map.put("flags", zoneFlags);
+        return serialized;
+    }
 
-        return map;
+    public String getName()
+    {
+        return name;
     }
 
     public TSLocation getStartLocation()
@@ -213,6 +241,46 @@ public class Zone implements Iterable<TSLocation>
     public List<TSPlayer> getBannedPlayers()
     {
         return bannedPlayers;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+
+    public ZoneFlagSet getZoneFlagSet()
+    {
+        return zoneFlagSet;
+    }
+
+    public List<TSZoneMember> getZoneMembers()
+    {
+        return zoneMembers;
+    }
+
+    public UUID getUUID()
+    {
+        return uuid;
+    }
+
+    public void addZoneMember(TSZoneMember zoneMember)
+    {
+        zoneMembers.add(zoneMember);
+    }
+
+    public void addZoneMembers(List<TSZoneMember> members)
+    {
+        zoneMembers.addAll(members);
+    }
+
+    public void removeZoneMember(TSZoneMember zoneMember)
+    {
+        zoneMembers.remove(zoneMember);
+    }
+
+    public void removeZoneMembers(List<TSZoneMember> members)
+    {
+        zoneMembers.removeAll(members);
     }
 
     private class ZoneIterator implements Iterator<TSLocation>

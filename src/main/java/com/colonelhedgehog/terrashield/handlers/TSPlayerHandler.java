@@ -3,6 +3,7 @@ package com.colonelhedgehog.terrashield.handlers;
 import com.colonelhedgehog.terrashield.components.TSPlayer;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +15,11 @@ public class TSPlayerHandler
 {
     private List<TSPlayer> tsPlayers;
 
+    public TSPlayerHandler()
+    {
+        this.tsPlayers = new ArrayList<>();
+    }
+
     public List<TSPlayer> getTSPlayers()
     {
         return tsPlayers;
@@ -21,8 +27,11 @@ public class TSPlayerHandler
 
     public TSPlayer getTSPlayer(Player player)
     {
-        UUID uuid = player.getUniqueId();
+        return getTSPlayer(player.getUniqueId());
+    }
 
+    public TSPlayer getTSPlayer(UUID uuid)
+    {
         for (TSPlayer tsPlayer : tsPlayers)
         {
             if (tsPlayer.getUUID() == uuid)
@@ -36,13 +45,18 @@ public class TSPlayerHandler
 
     public TSPlayer getOrCreateTSPlayer(Player player)
     {
+        return getOrCreateTSPlayer(player.getUniqueId());
+    }
+
+    public TSPlayer getOrCreateTSPlayer(UUID uuid)
+    {
         TSPlayer tsPlayer;
 
-        tsPlayer = getTSPlayer(player);
+        tsPlayer = getTSPlayer(uuid);
 
-        if(tsPlayer == null)
+        if (tsPlayer == null)
         {
-            return new TSPlayer(player);
+            return new TSPlayer(uuid);
         }
 
         return tsPlayer;

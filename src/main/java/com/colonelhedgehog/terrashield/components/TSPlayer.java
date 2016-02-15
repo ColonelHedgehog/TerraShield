@@ -19,7 +19,12 @@ public class TSPlayer
 
     public TSPlayer(Player player)
     {
-        this.uuid = player.getUniqueId();
+        this(player.getUniqueId());
+    }
+
+    public TSPlayer(UUID uuid)
+    {
+        this.uuid = uuid;
     }
 
     public Player toPlayer()

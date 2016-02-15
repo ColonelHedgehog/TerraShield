@@ -1,10 +1,12 @@
 package com.colonelhedgehog.terrashield.commands;
 
 import com.colonelhedgehog.terrashield.components.TSPlayer;
+import com.colonelhedgehog.terrashield.components.zone.Zone;
 import com.colonelhedgehog.terrashield.core.TerraShield;
 import com.colonelhedgehog.terrashield.handlers.TSPlayerHandler;
 import com.colonelhedgehog.terrashield.handlers.ZoneHandler;
 import com.colonelhedgehog.terrashield.utils.TSLocation;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -56,15 +58,13 @@ public class TSCommandListener implements CommandExecutor
 
             if (args.length == 1)
             {
-
-                ItemStack itemStack = zoneHandler.getZoneMarkerTool();
-
-                if (player.getItemInHand() != null)
+                if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR)
                 {
                     player.sendMessage(TerraShield.Prefix + "§4Error: §cYour hand must be free to give you this tool!");
                     return false;
                 }
 
+                ItemStack itemStack = zoneHandler.getZoneMarkerTool();
                 player.setItemInHand(itemStack);
                 player.sendMessage(TerraShield.Prefix + "§aYou have been given the §eZone Marker Tool§a.");
 
@@ -95,7 +95,9 @@ public class TSCommandListener implements CommandExecutor
             {
                 if (args[1].equalsIgnoreCase("create"))
                 {
-                    String name;
+                    // Todo prevent spam.
+
+                    final String name;
 
                     if (args.length > 2)
                     {
@@ -103,16 +105,14 @@ public class TSCommandListener implements CommandExecutor
                     }
                     else
                     {
-                        String playerName = player.getName();
-                        String nameWithSuffix = playerName.endsWith("s") || playerName.endsWith("z") ? playerName + "'" : playerName + "'s";
-
-                        name = nameWithSuffix + " Zone";
+                        player.sendMessage(TerraShield.Prefix + "§4Error: §cPlease specify a name! §e/" + label + "zone create <name with spaces>");
+                        return false;
                     }
 
                     TSPlayerHandler handler = plugin.getTSPlayerHandler();
-                    TSPlayer tsPlayer = handler.getTSPlayer(player);
+                    final TSPlayer tsPlayer = handler.getTSPlayer(player);
 
-                    if (tsPlayer == null)
+                    if (tsPlayer == null || tsPlayer.getCurrentLocation1() == null || tsPlayer.getCurrentLocation2() == null)
                     {
                         player.sendMessage(TerraShield.Prefix + "§4Error: §cYou haven't made a valid selection yet. Please use §e/ts tool §cand mark a selection.");
                         return false;
@@ -128,31 +128,59 @@ public class TSCommandListener implements CommandExecutor
                         {
                             if (location1.getWorldUID() != location2.getWorldUID())
                             {
-                                player.sendMessage("§4Error: §cLocations of zone corners must be in the same world!");
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cLocations of zone corners must be in the same world!");
                                 return;
                             }
 
-                            player.sendMessage("§eValidating zone. It will be checked against other zones nearby to be sure it's not overlapping any of them. This may take a little bit.");
+                            player.sendMessage(TerraShield.Prefix + "§eValidating zone. It will be checked against other zones nearby to be sure it's not overlapping any of them. This may take a little bit.");
+
+
+                            for (Zone zone : zoneHandler.getZonesByTSPlayer(tsPlayer))
+                            {
+                                if(zone.getName().equalsIgnoreCase(name))
+                                {
+                                    player.sendMessage(TerraShield.Prefix + "§cSorry, another zone by that name has already been created by you.");
+                                    return;
+                                }
+                            }
 
                             if (!zoneHandler.verifyCanCreate(location1, location2))
                             {
-                                player.sendMessage("§cSorry, this zone overlaps another zone!");
+                                player.sendMessage(TerraShield.Prefix + "§cSorry, this zone overlaps another zone!");
                                 return;
                             }
 
+                            Zone zone = new Zone(null, location1, location2); // Pass UUID as null. It will make one for us.
+                            zone.setName(name);
+
+                            zoneHandler.loadZone(zone);
                             player.sendMessage("§aThis zone does not overlap another zone. It has been created!");
 
                         }
                     }.runTaskAsynchronously(plugin);
+                }
+                else if(args[1].equalsIgnoreCase("delete"))
+                {
+                    String name;
+
+                    if(args.length > 2)
+                    {
+                        player.sendMessage(TerraShield.Prefix + "§4Error: §cPlease specify a name! §e/" + label + " zone create <name with spaces>");
+
+                        name = flatten(2, args);
+                    }
+                    else
+                    {
+
+                        return false;
+                    }
                 }
                 else
                 {
                     player.sendMessage("§4Error: §cNo zone command found! Try using §e/" + label + " help §cto find the command you're looking for.");
                 }
             }
-
             else
-
             {
                 player.sendMessage("§4Error: §cToo few arguments! Try using §e/" + label + " help §cto find the command you're looking for.");
             }

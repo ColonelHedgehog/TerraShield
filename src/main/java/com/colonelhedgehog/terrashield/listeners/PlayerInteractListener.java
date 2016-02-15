@@ -58,6 +58,7 @@ public class PlayerInteractListener implements Listener
         {
             hasZones = false;
             tsPlayer = new TSPlayer(event.getPlayer());
+            //plugin.getLogger().info("TSPlayer null creating new!");
 
             playerHandler.addTSPlayer(tsPlayer);
         }
@@ -99,6 +100,9 @@ public class PlayerInteractListener implements Listener
             location2 = new TSLocation(event.getClickedBlock().getLocation());
         }
 
+        tsPlayer.setCurrentLocation1(location1);
+        tsPlayer.setCurrentLocation2(location2);
+
         player.sendMessage("§e§lLocation set. §aCurrent zone cuboid selection is:");
 
         boolean bothNotSet = false;
@@ -109,7 +113,7 @@ public class PlayerInteractListener implements Listener
         }
         else
         {
-            player.sendMessage("§8- §4Corner #2: §cNot set. §eRight click §cwith the §6Zone Marker Tool§c.");
+            player.sendMessage("§8- §4Corner #1: §cNot set. §eRight click §cwith the §6Zone Marker Tool§c.");
             bothNotSet = true;
         }
 
@@ -122,7 +126,6 @@ public class PlayerInteractListener implements Listener
             player.sendMessage("§8- §4Corner #2: §cNot set. §eLeft click §cwith the §6Zone Marker Tool§c.");
             bothNotSet = true;
         }
-
 
         if (bothNotSet)
         {
