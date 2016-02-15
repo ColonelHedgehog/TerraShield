@@ -134,7 +134,14 @@ public class TSCommandListener implements CommandExecutor
 
                             player.sendMessage("§eValidating zone. It will be checked against other zones nearby to be sure it's not overlapping any of them. This may take a little bit.");
 
-                            zoneHandler.verify(location1, location2);
+                            if (!zoneHandler.verifyCanCreate(location1, location2))
+                            {
+                                player.sendMessage("§cSorry, this zone overlaps another zone!");
+                                return;
+                            }
+
+                            player.sendMessage("§aThis zone does not overlap another zone. It has been created!");
+
                         }
                     }.runTaskAsynchronously(plugin);
                 }

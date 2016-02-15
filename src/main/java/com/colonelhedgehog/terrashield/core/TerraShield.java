@@ -1,8 +1,10 @@
 package com.colonelhedgehog.terrashield.core;
 
+import com.colonelhedgehog.terrashield.commands.TSCommandListener;
 import com.colonelhedgehog.terrashield.handlers.TSPlayerHandler;
 import com.colonelhedgehog.terrashield.handlers.ZoneHandler;
 import com.colonelhedgehog.terrashield.listeners.InventoryClickListener;
+import com.colonelhedgehog.terrashield.listeners.PlayerDropItemListener;
 import com.colonelhedgehog.terrashield.listeners.PlayerInteractListener;
 import com.colonelhedgehog.terrashield.mongodb.Driver;
 import com.mongodb.MongoCredential;
@@ -10,6 +12,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.io.File;
 
 /**
  * TerraShield
@@ -29,6 +33,13 @@ public class TerraShield extends JavaPlugin
         instance = this;
         zoneHandler = new ZoneHandler(this);
         tsPlayerHandler = new TSPlayerHandler();
+
+        getConfig().options().copyDefaults(true);
+        if(!new File(getDataFolder() + "/config.yml").exists())
+        {
+            getLogger().info("Saved a new config.yml!");
+            saveDefaultConfig();
+        }
 
         registerEvents();
         connectToMongoDB();
@@ -58,10 +69,12 @@ public class TerraShield extends JavaPlugin
         PluginManager manager = getServer().getPluginManager();
         manager.registerEvents(new InventoryClickListener(this), this);
         manager.registerEvents(new PlayerInteractListener(this), this);
+        manager.registerEvents(new PlayerDropItemListener(this), this);
     }
 
     private void registerCommands()
     {
+        getServer().getPluginCommand("terrashield").setExecutor(new TSCommandListener(this));
     }
 
     public static TerraShield getInstance()

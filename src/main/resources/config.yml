@@ -1,11 +1,11 @@
 ## MongoDB Settings ##
 
 MongoDB:
-  IP: 'ds061405.mongolab.com'
-  Port: 61405
-  Database: 'terrashield_main'
-  Username: 'ColonelHedgehog'
-  Password: 'CHC^Mongo@4'
+  IP: ''
+  Port: 00000
+  Database: ''
+  Username: ''
+  Password: ''
 
 ## Global Settings ##
 Settings:

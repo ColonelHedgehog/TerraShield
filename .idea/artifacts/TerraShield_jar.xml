@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="TerraShield:jar">
+    <output-path>$USER_HOME$/Desktop/Bukkit/Bukkit Server/plugins</output-path>
+    <root id="archive" name="TerraShield.jar">
+      <element id="module-output" name="TerraShield" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/mongodb/mongo-java-driver/3.2.1/mongo-java-driver-3.2.1.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
