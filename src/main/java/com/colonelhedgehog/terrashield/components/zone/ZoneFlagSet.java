@@ -1,7 +1,8 @@
 package com.colonelhedgehog.terrashield.components.zone;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Set;
 
 /**
  * TerraShield
@@ -9,40 +10,43 @@ import java.util.List;
  */
 public class ZoneFlagSet
 {
-    private List<ZoneFlag> zoneFlags;
+    private HashMap<String, ZoneFlag> zoneFlags;
 
     public ZoneFlagSet()
     {
-        zoneFlags = new ArrayList<>();
-        zoneFlags.add(new ZoneFlag("pvp", false, false, true));
-        zoneFlags.add(new ZoneFlag("damage", false, false, true));
-        zoneFlags.add(new ZoneFlag("edit", false, true, true));
-        zoneFlags.add(new ZoneFlag("explosion", false, false, false));
-        zoneFlags.add(new ZoneFlag("enter", true, true, true));
-        zoneFlags.add(new ZoneFlag("endpearl", true, true, true));
-        zoneFlags.add(new ZoneFlag("liquid_flow", true, true, true));
-        zoneFlags.add(new ZoneFlag("interact", true, true, true));
-        zoneFlags.add(new ZoneFlag("speak", true, true, true));
-        zoneFlags.add(new ZoneFlag("drop", true, true, true));
+        zoneFlags = new HashMap<>();
 
+        zoneFlags.put("pvp", new ZoneFlag("pvp", false, false, true));
+        zoneFlags.put("damage", new ZoneFlag("damage", false, false, true));
+        zoneFlags.put("edit", new ZoneFlag("edit", false, true, true));
+        zoneFlags.put("explosion", new ZoneFlag("explosion", false, false, false));
+        zoneFlags.put("enter", new ZoneFlag("enter", true, true, true));
+        zoneFlags.put("endpearl", new ZoneFlag("endpearl", true, true, true));
+        zoneFlags.put("liquid_flow", new ZoneFlag("liquid_flow", true, true, true));
+        zoneFlags.put("interact", new ZoneFlag("interact", true, true, true));
+        zoneFlags.put("speak", new ZoneFlag("speak", true, true, true));
+        zoneFlags.put("drop", new ZoneFlag("drop", true, true, true));
+
+    }
+
+    public Set<String> getZoneFlagNames()
+    {
+        return zoneFlags.keySet();
     }
 
     public ZoneFlag getZoneFlagByName(String name)
     {
-        for(ZoneFlag permission : zoneFlags)
+        if(zoneFlags.containsKey(name.toLowerCase()))
         {
-            if(permission.getName().equalsIgnoreCase(name))
-            {
-                return permission;
-            }
+            return zoneFlags.get(name);
         }
 
         return null;
     }
 
-    public List<ZoneFlag> getZoneFlags()
+    public Collection<ZoneFlag> getZoneFlags()
     {
-        return zoneFlags;
+        return zoneFlags.values();
     }
 
     public class ZoneFlag
@@ -93,6 +97,40 @@ public class ZoneFlagSet
         public String getName()
         {
             return name;
+        }
+
+        public void set(ZoneRole role, boolean setting)
+        {
+            if (role == ZoneRole.OWNER || role == ZoneRole.ADMIN)
+            {
+                setAdmins(setting);
+            }
+            else if (role == ZoneRole.MEMBER)
+            {
+                setMembers(setting);
+            }
+            else if (role == ZoneRole.ALL)
+            {
+                setAllPlayers(setting);
+            }
+        }
+
+        public boolean getForRole(ZoneRole role)
+        {
+            if(role == null || role == ZoneRole.ALL)
+            {
+                return isAllPlayers();
+            }
+            else if(role == ZoneRole.OWNER || role == ZoneRole.ADMIN)
+            {
+                return isAdmins();
+            }
+            else if(role == ZoneRole.MEMBER)
+            {
+                return isMembers();
+            }
+
+            return false;
         }
     }
 }

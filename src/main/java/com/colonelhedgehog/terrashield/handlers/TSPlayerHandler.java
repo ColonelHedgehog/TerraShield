@@ -32,8 +32,10 @@ public class TSPlayerHandler
 
     public TSPlayer getTSPlayer(UUID uuid)
     {
+        //Bukkit.broadcastMessage("Looking for " + uuid.toString());
         for (TSPlayer tsPlayer : tsPlayers)
         {
+            //Bukkit.broadcastMessage("Checking player " + tsPlayer.getUUID().toString());
             if (tsPlayer.getUUID() == uuid)
             {
                 return tsPlayer;
@@ -43,27 +45,9 @@ public class TSPlayerHandler
         return null;
     }
 
-    public TSPlayer getOrCreateTSPlayer(Player player)
-    {
-        return getOrCreateTSPlayer(player.getUniqueId());
-    }
-
-    public TSPlayer getOrCreateTSPlayer(UUID uuid)
-    {
-        TSPlayer tsPlayer;
-
-        tsPlayer = getTSPlayer(uuid);
-
-        if (tsPlayer == null)
-        {
-            return new TSPlayer(uuid);
-        }
-
-        return tsPlayer;
-    }
-
     public void addTSPlayer(TSPlayer tsPlayer)
     {
         tsPlayers.add(tsPlayer);
+        //Bukkit.broadcastMessage("ADDING TSPLAYER: " + tsPlayer.getUUID());
     }
 }

@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * TerraShield
@@ -50,14 +51,15 @@ public class PlayerInteractListener implements Listener
         int maxZoneCount = plugin.getConfig().getInt("Settings.Limits.Count");
         TSPlayerHandler playerHandler = plugin.getTSPlayerHandler();
 
-        TSPlayer tsPlayer = playerHandler.getTSPlayer(event.getPlayer());
+        UUID uuid = event.getPlayer().getUniqueId();
+        TSPlayer tsPlayer = playerHandler.getTSPlayer(uuid);
 
         boolean hasZones = true;
 
         if (tsPlayer == null)
         {
             hasZones = false;
-            tsPlayer = new TSPlayer(event.getPlayer());
+            tsPlayer = new TSPlayer(uuid);
             //plugin.getLogger().info("TSPlayer null creating new!");
 
             playerHandler.addTSPlayer(tsPlayer);
@@ -68,7 +70,7 @@ public class PlayerInteractListener implements Listener
         // Prevent unnecessary looping.
         if (hasZones)
         {
-            zones = zoneHandler.getZonesByTSPlayer(tsPlayer);
+            zones = zoneHandler.getZonesByTSPlayer(tsPlayer, true);
         }
 
         boolean tooMany = hasZones && zones.size() > maxZoneCount;

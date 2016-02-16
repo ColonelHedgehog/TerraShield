@@ -15,9 +15,11 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * TerraShield
@@ -93,7 +95,7 @@ public class ZoneHandler
         return itemStack;
     }
 
-    public List<Zone> getZonesByTSPlayer(TSPlayer tsPlayer)
+    public List<Zone> getZonesByTSPlayer(TSPlayer tsPlayer, boolean ownerOnly)
     {
         List<Zone> zones = new ArrayList<>();
 
@@ -101,12 +103,19 @@ public class ZoneHandler
         {
             ZoneRole role = zone.getZoneRole(tsPlayer);
 
-            if (role != null)
+            //plugin.getLogger().info("Checking for zone " + zone.getName());
+            //plugin.getLogger().info("Getting zone role of player " + role);
+
+            if (role != null && role != ZoneRole.ALL)
             {
-                if (role == ZoneRole.OWNER)
+                if (ownerOnly && role != ZoneRole.OWNER)
                 {
-                    zones.add(zone);
+                    continue;
                 }
+
+                //plugin.getLogger().info("Role was owner so adding");
+
+                zones.add(zone);
             }
         }
 
@@ -189,34 +198,12 @@ public class ZoneHandler
     public boolean isPointInZone(Zone zone, TSLocation input)
     {
         TSLocation location = input.clone();
-        location.setY(0);
 
-        TSLocation upper1 = zone.getStartLocation().clone();
-        TSLocation upper2 = upper1.clone();
-        upper1.setY(0);
-        upper2.setY(0);
+        TSLocation upper = zone.getStartLocation().clone(); // X1<X2, Z1>Z2
+        TSLocation lower = zone.getEndLocation().clone(); // X2>X1, Z2<Z1
 
-        TSLocation lower1 = zone.getEndLocation().clone();
-        TSLocation lower2 = lower1.clone();
-        lower1.setY(0);
-        lower2.setY(0);
-
-        upper2.setX(upper1.getZ());
-        lower2.setZ(upper1.getX());
-
-
-        Vector vector1 = new Vector(upper1.getX(), 0, upper1.getZ());
-        Vector vector2 = new Vector(upper2.getX(), 0, upper2.getZ());
-        Vector vector3 = new Vector(lower1.getX(), 0, lower1.getZ());
-        Vector vector4 = new Vector(lower2.getX(), 0, lower2.getZ());
-        Vector point = new Vector(location.getX(), 0, location.getZ());
-
-        Vector vec1Minus4 = vector1.subtract(vector4);
-        Vector vec3Minus4 = vector3.subtract(vector4);
-        Vector centralVector = point.multiply(2).subtract(vector1).subtract(vector3);
-
-        return (vec3Minus4.dot(centralVector.subtract(vec3Minus4)) <= 0 && vec3Minus4.dot(centralVector.add(vec3Minus4)) >= 0) &&
-                (vec1Minus4.dot(centralVector.subtract(vec1Minus4)) <= 0 && vec1Minus4.dot(centralVector.add(vec1Minus4)) >= 0);
+        return location.getX() >= upper.getX() && location.getX() <= lower.getX() &&
+                location.getZ() <= upper.getZ() && location.getZ() >= lower.getZ();
 
     }
 
@@ -234,23 +221,26 @@ public class ZoneHandler
     public Zone loadZoneFromCollection(Document zoneDoc)
     {
         String name = zoneDoc.getString("name");
-        UUID uuid = UUID.fromString(zoneDoc.getString("uuid"));
-        HashMap startLocationMap = zoneDoc.get("startLocation", HashMap.class);
-        HashMap endLocationMap = zoneDoc.get("endLocation", HashMap.class);
-        HashMap members = zoneDoc.get("members", HashMap.class);
-        HashMap zoneFlags = zoneDoc.get("zoneFlags", HashMap.class);
 
-        TSLocation startLocation = new TSLocation(UUID.fromString((String) startLocationMap.get("worldUID")),
+        UUID uuid = zoneDoc.get("uuid", UUID.class);
+
+        Document startLocationMap = zoneDoc.get("startLocation", Document.class);
+        Document endLocationMap = zoneDoc.get("endLocation", Document.class);
+        Document members = zoneDoc.get("members", Document.class);
+        Document zoneFlags = zoneDoc.get("flags", Document.class);
+
+        TSLocation startLocation = new TSLocation(startLocationMap.get("worldUID", UUID.class),
                 (int) startLocationMap.get("x"),
                 (int) startLocationMap.get("y"),
                 (int) startLocationMap.get("z"));
 
-        TSLocation endLocation = new TSLocation(UUID.fromString((String) endLocationMap.get("worldUID")),
+        TSLocation endLocation = new TSLocation(endLocationMap.get("worldUID", UUID.class),
                 (int) endLocationMap.get("x"),
                 (int) endLocationMap.get("y"),
                 (int) endLocationMap.get("z"));
 
         Zone zone = new Zone(uuid, startLocation, endLocation);
+        zone.setName(name);
 
         TSPlayerHandler playerHandler = plugin.getTSPlayerHandler();
 
@@ -258,9 +248,15 @@ public class ZoneHandler
         {
             Map.Entry mapEntry = (Map.Entry) entry;
 
-            UUID memberId = UUID.fromString((String) mapEntry.getKey());
+            UUID memberId = (UUID.fromString((String) mapEntry.getKey()));
+            //plugin.getLogger().info("Loading entries from mongo! UUID: " + memberId.toString());
             ZoneRole role = ZoneRole.valueOf((String) mapEntry.getValue());
-            TSZoneMember zoneMember = new TSZoneMember(playerHandler.getOrCreateTSPlayer(memberId));
+
+            TSPlayer player = new TSPlayer(memberId);
+            playerHandler.addTSPlayer(player);
+
+            TSZoneMember zoneMember = new TSZoneMember(player, zone);
+            //plugin.getLogger().info("Created new TSPlayer with TSZoneMember " + memberId.toString() + " role " + role.name());
 
             zoneMember.setRole(role);
             zone.addZoneMember(zoneMember);
@@ -297,11 +293,24 @@ public class ZoneHandler
 
         // Insert where uuid is the same as the zone's uuid.
         Document query = new Document();
-        query.put("uuid", zone.getUUID().toString());
+        query.put("uuid", zone.getUUID());
 
         UpdateOptions updateOptions = new UpdateOptions();
         updateOptions.upsert(true);
 
         zones.replaceOne(query, serialized, updateOptions);
+    }
+
+    public Zone getZoneByTSPlayerAndName(TSPlayer tsPlayer, String name)
+    {
+        for (Zone search : getZonesByTSPlayer(tsPlayer, true))
+        {
+            if (search.getName().startsWith(name))
+            {
+                return search;
+            }
+        }
+
+        return null;
     }
 }

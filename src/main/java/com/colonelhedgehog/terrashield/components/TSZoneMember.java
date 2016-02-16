@@ -13,9 +13,11 @@ public class TSZoneMember
     private ZoneRole role;
     private TSPlayer player;
 
-    public TSZoneMember(TSPlayer player)
+    public TSZoneMember(TSPlayer player, Zone zone)
     {
         this.player = player;
+        this.zone = zone;
+        this.role = ZoneRole.ALL;
     }
 
     public TSPlayer getPlayer()

@@ -4,9 +4,7 @@ import com.colonelhedgehog.terrashield.commands.TSCommandListener;
 import com.colonelhedgehog.terrashield.components.zone.Zone;
 import com.colonelhedgehog.terrashield.handlers.TSPlayerHandler;
 import com.colonelhedgehog.terrashield.handlers.ZoneHandler;
-import com.colonelhedgehog.terrashield.listeners.InventoryClickListener;
-import com.colonelhedgehog.terrashield.listeners.PlayerDropItemListener;
-import com.colonelhedgehog.terrashield.listeners.PlayerInteractListener;
+import com.colonelhedgehog.terrashield.listeners.*;
 import com.colonelhedgehog.terrashield.mongodb.Driver;
 import com.mongodb.MongoCredential;
 import com.mongodb.client.MongoCollection;
@@ -19,7 +17,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
-import java.util.HashMap;
 
 /**
  * TerraShield
@@ -31,7 +28,7 @@ public class TerraShield extends JavaPlugin
     public static String Prefix = "§8[§fTerra§aShield§8] » §f";
     private Driver driver;
     private ZoneHandler zoneHandler;
-    private com.colonelhedgehog.terrashield.handlers.TSPlayerHandler tsPlayerHandler;
+    private TSPlayerHandler tsPlayerHandler;
 
     @Override
     public void onEnable()
@@ -50,7 +47,7 @@ public class TerraShield extends JavaPlugin
         registerCommands();
         connectToMongoDB();
 
-        // Initialized in connectToMongoDB() ->zoneHandler = new ZoneHandler(this, driver);
+        // Initialized in connectToMongoDB() -> zoneHandler = new ZoneHandler(this, driver);
     }
 
     @Override
@@ -70,18 +67,16 @@ public class TerraShield extends JavaPlugin
                     zoneHandler.saveZoneToCollection(zones, zone, time);
                 }
 
-                HashMap<String, Object> query = new HashMap<>();
-                HashMap<String, Object> condition = new HashMap<>();
+                Document query = new Document();
+                Document condition = new Document();
 
-                condition.put("$not", time);
+                condition.put("$not", new Document("$gte", time));
                 query.put("time", condition);
-
-                Document document = new Document(query);
 
                 // Delete any "stragglers." If it has not been saved (and thus its time is not being updated)
                 // then we can assume it has been deleted. So bye bye!
 
-                driver.getDatabase().getCollection("zones").deleteMany(document);
+                driver.getDatabase().getCollection("zones").deleteMany(query);
                 driver.close();
             }
         });
@@ -140,6 +135,9 @@ public class TerraShield extends JavaPlugin
         manager.registerEvents(new InventoryClickListener(this), this);
         manager.registerEvents(new PlayerInteractListener(this), this);
         manager.registerEvents(new PlayerDropItemListener(this), this);
+        manager.registerEvents(new EntityDamageListener(this), this);
+        manager.registerEvents(new EntityDamageByEntityListener(this), this);
+        manager.registerEvents(new PlayerJoinListener(this), this);
     }
 
     private void registerCommands()

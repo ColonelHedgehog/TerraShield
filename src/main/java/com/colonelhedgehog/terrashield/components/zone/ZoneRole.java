@@ -6,5 +6,5 @@ package com.colonelhedgehog.terrashield.components.zone;
  */
 public enum ZoneRole
 {
-    OWNER, ADMIN, MEMBER
+    OWNER, ADMIN, MEMBER, ALL
 }

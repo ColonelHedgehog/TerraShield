@@ -4,45 +4,45 @@ import com.colonelhedgehog.terrashield.components.TSPlayer;
 import com.colonelhedgehog.terrashield.components.zone.Zone;
 import com.colonelhedgehog.terrashield.components.zone.ZoneFlagSet;
 import com.colonelhedgehog.terrashield.core.TerraShield;
+import com.colonelhedgehog.terrashield.handlers.TSPlayerHandler;
 import com.colonelhedgehog.terrashield.handlers.ZoneHandler;
 import com.colonelhedgehog.terrashield.utils.TSLocation;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * TerraShield
- * Created by ColonelHedgehog on 2/14/16.
+ * Created by ColonelHedgehog on 2/15/16.
  */
-public class PlayerDropItemListener implements Listener
+public class EntityDamageListener implements Listener
 {
     private TerraShield plugin;
 
-    public PlayerDropItemListener(TerraShield plugin)
+    public EntityDamageListener(TerraShield plugin)
     {
         this.plugin = plugin;
     }
 
     @EventHandler
-    public void onPlayerDropItem(final PlayerDropItemEvent event)
+    public void onPlayerDamage(final EntityDamageEvent event)
     {
-        Item item = event.getItemDrop();
-        final Player bplayer = event.getPlayer();
-
-        final ZoneHandler zoneHandler = plugin.getZoneHandler();
-
-        if (zoneHandler.isZoneMarkerTool(item.getItemStack()))
+        if (!(event.getEntity() instanceof Player))
         {
-            event.getItemDrop().remove();
-            bplayer.sendMessage(TerraShield.Prefix + "§b§oRemoved the §e§oZone Marker Tool §b§ofrom your inventory.");
             return;
         }
 
-        final TSLocation location = new TSLocation(event.getItemDrop().getLocation());
-        final TSPlayer player = plugin.getTSPlayerHandler().getTSPlayer(bplayer);
+        final Player entity = (Player) event.getEntity();
+        final TSLocation location = new TSLocation(entity.getLocation());
+        final ZoneHandler zoneHandler = plugin.getZoneHandler();
+        final TSPlayerHandler playerHandler = plugin.getTSPlayerHandler();
+
+        final ItemStack[] armor = entity.getInventory().getArmorContents();
+
+        final TSPlayer player = playerHandler.getTSPlayer(entity);
 
         new BukkitRunnable()
         {
@@ -53,22 +53,20 @@ public class PlayerDropItemListener implements Listener
                 {
                     if (zoneHandler.isPointInZone(zone, location))
                     {
-                        ZoneFlagSet.ZoneFlag flag = zone.getZoneFlagSet().getZoneFlagByName("drop");
+                        ZoneFlagSet.ZoneFlag flag = zone.getZoneFlagSet().getZoneFlagByName("damage");
 
-                        if (!flag.getForRole(zone.getZoneRole(player)))
+                        if (flag.getForRole(zone.getZoneRole(player)))
                         {
-                            bplayer.sendMessage(TerraShield.Prefix + "§cYou're not allowed to drop items here!");
-
                             new BukkitRunnable()
                             {
                                 @Override
                                 public void run()
                                 {
-                                    event.getItemDrop().remove();
+                                    entity.setHealth(entity.getHealth() + event.getFinalDamage());
+                                    entity.getInventory().setArmorContents(armor);
                                 }
                             }.runTask(plugin);
                         }
-
                         return;
                     }
                 }

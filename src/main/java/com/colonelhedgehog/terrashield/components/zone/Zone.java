@@ -5,6 +5,7 @@ import com.colonelhedgehog.terrashield.components.TSZoneMember;
 import com.colonelhedgehog.terrashield.core.TerraShield;
 import com.colonelhedgehog.terrashield.utils.TSLocation;
 import org.bson.Document;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -64,6 +65,10 @@ public class Zone implements Iterable<TSLocation>
             end.setZ(start.getZ());
             start.setZ(tempz);
         }
+
+        boolean bool = start.getX() < end.getX() && start.getZ() > end.getZ();
+
+        Bukkit.broadcastMessage("ZONE CORNERS SET RIGHT? " + bool);
     }
 
     /**
@@ -104,7 +109,12 @@ public class Zone implements Iterable<TSLocation>
 
         for (TSZoneMember member : zoneMembers)
         {
-            membersWithRoles.put(member.getPlayer().getUUID().toString(), member.getRole().name());
+            TSPlayer player = member.getPlayer();
+            UUID uuid = player.getUUID();
+
+            ZoneRole role = member.getRole();
+
+            membersWithRoles.put(String.valueOf(uuid), role.name());
         }
 
         Document zoneFlags = new Document();
@@ -115,7 +125,7 @@ public class Zone implements Iterable<TSLocation>
         }
 
         serialized.put("name", name);
-        serialized.put("uuid", uuid.toString());
+        serialized.put("uuid", uuid);
         serialized.put("startLocation", startMap);
         serialized.put("endLocation", endMap);
         serialized.put("members", membersWithRoles);
@@ -220,7 +230,7 @@ public class Zone implements Iterable<TSLocation>
             }
         }
 
-        return null;
+        return ZoneRole.ALL;
     }
 
     public List<TSZoneMember> getMembersWithRole(ZoneRole role)

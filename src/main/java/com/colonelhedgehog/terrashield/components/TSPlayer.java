@@ -16,6 +16,7 @@ public class TSPlayer
 
     private TSLocation currLoc1;
     private TSLocation currLoc2;
+    private boolean selecting;
 
     public TSPlayer(Player player)
     {
@@ -25,6 +26,7 @@ public class TSPlayer
     public TSPlayer(UUID uuid)
     {
         this.uuid = uuid;
+        this.selecting = false;
     }
 
     public Player toPlayer()
@@ -55,5 +57,35 @@ public class TSPlayer
     public void setCurrentLocation2(TSLocation currLoc2)
     {
         this.currLoc2 = currLoc2;
+    }
+
+    public boolean isSelecting()
+    {
+        return selecting;
+    }
+
+    public void setSelecting(boolean selecting)
+    {
+        this.selecting = selecting;
+    }
+
+    public boolean isOnline(boolean convertToBplayer)
+    {
+        if (!convertToBplayer)
+        {
+            for (Player online : Bukkit.getOnlinePlayers())
+            {
+                if (online.getUniqueId() == uuid)
+                {
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            return Bukkit.getOfflinePlayer(uuid).isOnline();
+        }
+
+        return false;
     }
 }
