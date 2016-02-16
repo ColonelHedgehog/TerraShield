@@ -5,7 +5,6 @@ import com.colonelhedgehog.terrashield.components.TSZoneMember;
 import com.colonelhedgehog.terrashield.core.TerraShield;
 import com.colonelhedgehog.terrashield.utils.TSLocation;
 import org.bson.Document;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -24,7 +23,6 @@ public class Zone implements Iterable<TSLocation>
 
     private ZoneFlagSet zoneFlagSet;
     private List<TSZoneMember> zoneMembers;
-    private List<TSPlayer> bannedPlayers;
     private String name;
     private UUID uuid;
 
@@ -48,7 +46,6 @@ public class Zone implements Iterable<TSLocation>
         this.end = end;
         this.zoneFlagSet = new ZoneFlagSet();
         this.zoneMembers = new ArrayList<>();
-        this.bannedPlayers = new ArrayList<>();
         this.uuid = uuid == null ? UUID.randomUUID() : uuid;
 
         if (start.getX() > end.getX())
@@ -66,9 +63,9 @@ public class Zone implements Iterable<TSLocation>
             start.setZ(tempz);
         }
 
-        boolean bool = start.getX() < end.getX() && start.getZ() > end.getZ();
+        //boolean bool = start.getX() < end.getX() && start.getZ() > end.getZ();
 
-        Bukkit.broadcastMessage("ZONE CORNERS SET RIGHT? " + bool);
+        //Bukkit.broadcastMessage("ZONE CORNERS SET RIGHT? " + bool);
     }
 
     /**
@@ -246,11 +243,6 @@ public class Zone implements Iterable<TSLocation>
         }
 
         return tsPlayers;
-    }
-
-    public List<TSPlayer> getBannedPlayers()
-    {
-        return bannedPlayers;
     }
 
     public void setName(String name)

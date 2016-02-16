@@ -16,16 +16,16 @@ public class ZoneFlagSet
     {
         zoneFlags = new HashMap<>();
 
-        zoneFlags.put("pvp", new ZoneFlag("pvp", false, false, true));
         zoneFlags.put("damage", new ZoneFlag("damage", false, false, true));
-        zoneFlags.put("edit", new ZoneFlag("edit", false, true, true));
-        zoneFlags.put("explosion", new ZoneFlag("explosion", false, false, false));
-        zoneFlags.put("enter", new ZoneFlag("enter", true, true, true));
-        zoneFlags.put("endpearl", new ZoneFlag("endpearl", true, true, true));
-        zoneFlags.put("liquid_flow", new ZoneFlag("liquid_flow", true, true, true));
-        zoneFlags.put("interact", new ZoneFlag("interact", true, true, true));
-        zoneFlags.put("speak", new ZoneFlag("speak", true, true, true));
         zoneFlags.put("drop", new ZoneFlag("drop", true, true, true));
+        zoneFlags.put("edit", new ZoneFlag("edit", false, true, true));
+        zoneFlags.put("endpearl", new ZoneFlag("endpearl", true, true, true));
+        zoneFlags.put("enter", new ZoneFlag("enter", true, true, true));
+        zoneFlags.put("explosion", new ZoneFlag("explosion", false, false, false));
+        zoneFlags.put("interact", new ZoneFlag("interact", true, true, true));
+        zoneFlags.put("liquid_flow", new ZoneFlag("liquid_flow", true, true, true));
+        zoneFlags.put("pvp", new ZoneFlag("pvp", false, false, true));
+        zoneFlags.put("speak", new ZoneFlag("speak", true, true, true));
 
     }
 

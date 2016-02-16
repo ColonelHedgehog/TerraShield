@@ -2,15 +2,22 @@ package com.colonelhedgehog.terrashield.listeners;
 
 import com.colonelhedgehog.terrashield.components.TSPlayer;
 import com.colonelhedgehog.terrashield.components.zone.Zone;
+import com.colonelhedgehog.terrashield.components.zone.ZoneFlagSet;
 import com.colonelhedgehog.terrashield.core.TerraShield;
 import com.colonelhedgehog.terrashield.handlers.TSPlayerHandler;
 import com.colonelhedgehog.terrashield.handlers.ZoneHandler;
 import com.colonelhedgehog.terrashield.utils.TSLocation;
+import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,19 +37,76 @@ public class PlayerInteractListener implements Listener
     }
 
     @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event)
+    public void onPlayerInteract(final PlayerInteractEvent event)
     {
-        ZoneHandler zoneHandler = plugin.getZoneHandler();
+        final ZoneHandler zoneHandler = plugin.getZoneHandler();
+
+        final Player bplayer = event.getPlayer();
 
         if (!zoneHandler.isZoneMarkerTool(event.getItem()))
         {
+            if (event.getClickedBlock() == null || bplayer.hasMetadata("exemptInt"))
+            {
+                if (bplayer.hasMetadata("exemptInt"))
+                {
+                    bplayer.removeMetadata("exemptInt", plugin);
+                }
+                return;
+            }
+
+            final TSPlayer player = plugin.getTSPlayerHandler().getTSPlayer(bplayer);
+
+            final Block block = event.getClickedBlock();
+            final BlockFace face = event.getBlockFace();
+            final ItemStack item = event.getItem();
+            final Action action = event.getAction();
+            final TSLocation location = new TSLocation(block.getLocation());
+
+            new BukkitRunnable()
+            {
+                @Override
+                public void run()
+                {
+                    for (final Zone zone : zoneHandler.getZones())
+                    {
+                        if (zoneHandler.isPointInZone(zone, location))
+                        {
+                            final ZoneFlagSet.ZoneFlag flag = zone.getZoneFlagSet().getZoneFlagByName("interact");
+
+
+                            if (!flag.getForRole(zone.getZoneRole(player)))
+                            {
+                                bplayer.sendMessage(TerraShield.Prefix + "§cYou can't interact here!");
+                            }
+                            else
+                            {
+                                new BukkitRunnable()
+                                {
+
+                                    @Override
+                                    public void run()
+                                    {
+                                        bplayer.setMetadata("exemptInt", new FixedMetadataValue(plugin, true));
+
+                                        // Rerun with "exempt" message, so this is all skipped.
+                                        Bukkit.getPluginManager().callEvent(new PlayerInteractEvent(bplayer, action, item, block, face));
+                                    }
+                                }.runTask(plugin);
+                            }
+
+
+                            return;
+                        }
+                    }
+                }
+            }.runTaskAsynchronously(plugin);
+
             return;
         }
-        Player player = event.getPlayer();
 
-        if (!player.hasPermission("terrashield.tool"))
+        if (!bplayer.hasPermission("terrashield.tool"))
         {
-            player.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use the §6Zone Marker Tool§c!");
+            bplayer.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use the §6Zone Marker Tool§c!");
             return;
         }
 
@@ -77,7 +141,7 @@ public class PlayerInteractListener implements Listener
 
         if (tooMany)
         {
-            player.sendMessage(TerraShield.Prefix + "§4Error: §cYou own too many zones right now. Please remove one of your existing zones to make a new one.");
+            bplayer.sendMessage(TerraShield.Prefix + "§4Error: §cYou own too many zones right now. Please remove one of your existing zones to make a new one.");
 
             return;
         }
@@ -87,7 +151,7 @@ public class PlayerInteractListener implements Listener
 
         if (event.getAction() == Action.RIGHT_CLICK_AIR)
         {
-            location1 = new TSLocation(player.getLocation());
+            location1 = new TSLocation(bplayer.getLocation());
         }
         else if (event.getAction() == Action.RIGHT_CLICK_BLOCK)
         {
@@ -95,7 +159,7 @@ public class PlayerInteractListener implements Listener
         }
         else if (event.getAction() == Action.LEFT_CLICK_AIR)
         {
-            location2 = new TSLocation(player.getLocation());
+            location2 = new TSLocation(bplayer.getLocation());
         }
         else if (event.getAction() == Action.LEFT_CLICK_BLOCK)
         {
@@ -105,27 +169,27 @@ public class PlayerInteractListener implements Listener
         tsPlayer.setCurrentLocation1(location1);
         tsPlayer.setCurrentLocation2(location2);
 
-        player.sendMessage("§e§lLocation set. §aCurrent zone cuboid selection is:");
+        bplayer.sendMessage(TerraShield.Prefix + "§e§lLocation set. §aCurrent zone cuboid selection is:");
 
         boolean bothNotSet = false;
 
         if (location1 != null)
         {
-            player.sendMessage("§8- §6Corner #1: §eX: §a" + location1.getX() + "§e, Y: §a" + location1.getY() + "§e, Z: §a" + location1.getZ());
+            bplayer.sendMessage(TerraShield.Prefix + "§8- §6Corner #1: §eX: §a" + location1.getX() + "§e, Y: §a" + location1.getY() + "§e, Z: §a" + location1.getZ());
         }
         else
         {
-            player.sendMessage("§8- §4Corner #1: §cNot set. §eRight click §cwith the §6Zone Marker Tool§c.");
+            bplayer.sendMessage(TerraShield.Prefix + "§8- §4Corner #1: §cNot set. §eRight click §cwith the §6Zone Marker Tool§c.");
             bothNotSet = true;
         }
 
         if (location2 != null)
         {
-            player.sendMessage("§8- §6Corner #2: §eX: §a" + location2.getX() + "§e, Y: §a" + location2.getY() + "§e, Z: §a" + location2.getZ());
+            bplayer.sendMessage(TerraShield.Prefix + "§8- §6Corner #2: §eX: §a" + location2.getX() + "§e, Y: §a" + location2.getY() + "§e, Z: §a" + location2.getZ());
         }
         else
         {
-            player.sendMessage("§8- §4Corner #2: §cNot set. §eLeft click §cwith the §6Zone Marker Tool§c.");
+            bplayer.sendMessage(TerraShield.Prefix + "§8- §4Corner #2: §cNot set. §eLeft click §cwith the §6Zone Marker Tool§c.");
             bothNotSet = true;
         }
 
@@ -134,7 +198,7 @@ public class PlayerInteractListener implements Listener
             return;
         }
 
-        player.sendMessage(TerraShield.Prefix + "§aYou have created a zone selection. " +
+        bplayer.sendMessage(TerraShield.Prefix + "§aYou have created a zone selection. " +
                 "Now you can use §e/ts zone create <name> §ato create it as a TerraShield zone.");
     }
 }

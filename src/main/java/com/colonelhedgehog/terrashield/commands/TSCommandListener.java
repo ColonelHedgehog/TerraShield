@@ -35,6 +35,7 @@ public class TSCommandListener implements CommandExecutor
         this.plugin = plugin;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, final String label, final String[] args)
     {
@@ -224,6 +225,8 @@ public class TSCommandListener implements CommandExecutor
 
                     final HashMap<UUID, String> worldNames = new HashMap<>();
 
+                    Bukkit.broadcastMessage("Testing for /ts zone list");
+
                     for (World world : Bukkit.getWorlds())
                     {
                         worldNames.put(world.getUID(), world.getName());
@@ -236,16 +239,24 @@ public class TSCommandListener implements CommandExecutor
                         {
                             try
                             {
+
                                 TSPlayer tsPlayer = tsPlayerHandler.getTSPlayer(uuid);
+
+                                //Bukkit.broadcastMessage("Got TS player: " + tsPlayer);
+
                                 final List<Zone> zones = new ArrayList<>(zoneHandler.getZonesByTSPlayer(tsPlayer, false));
+
+                                //Bukkit.broadcastMessage("Got zones: " + zones);
 
                                 if (zones.isEmpty())
                                 {
                                     player.sendMessage(TerraShield.Prefix + "§4Error: §cNo zones found!");
+                                    //Bukkit.broadcastMessage("Zones empty!");
+
                                     return;
                                 }
 
-                                player.sendMessage("§a§lYour Zones: §m------------------------");
+                                player.sendMessage("§a§lYour Zones: §m----------------------------------------------------");
 
                                 for (Zone zone : zones)
                                 {
@@ -254,7 +265,7 @@ public class TSCommandListener implements CommandExecutor
 
                                     UUID worldUUID = zone.getStartLocation().getWorldUID();
                                     player.sendMessage("§8- §9Role: §b" + zone.getZoneRole(tsPlayer).toString() + "§9: \"§b" + zone.getName() + "§9\" in §b" + worldNames.get(worldUUID) + "§9, §dfrom §9" +
-                                            "X1: §b" + location1.getX() + "§9, " +
+                                            "§9X1: §b" + location1.getX() + "§9, " +
                                             "Y1: §b" + location1.getY() + "§9, " +
                                             "Z1: §b" + location1.getZ() + "§9 " +
                                             " §dto " +
@@ -366,6 +377,7 @@ public class TSCommandListener implements CommandExecutor
                             {
                                 //player.sendMessage(TerraShield.Prefix + "§4Error: §cPlease also specify a flag name, player role, and setting (true/false)! §e/" + label + " zone flag <name with spaces> <flag name> <role> <true/false>");
                                 printTable(player, zone);
+                                return;
                             }
 
                             String flag = args[3].toLowerCase();
@@ -381,7 +393,17 @@ public class TSCommandListener implements CommandExecutor
                             }
 
                             String role = args[4].toUpperCase();
-                            ZoneRole zoneRole = ZoneRole.valueOf(role);
+
+                            ZoneRole zoneRole = null;
+
+                            try
+                            {
+                                zoneRole = ZoneRole.valueOf(role);
+                            }
+                            catch (IllegalArgumentException ignored)
+                            {
+
+                            }
 
                             if (zoneRole == null)
                             {
@@ -407,25 +429,212 @@ public class TSCommandListener implements CommandExecutor
                         }
                     }.runTaskAsynchronously(plugin);
                 }
+                else if (args[1].equalsIgnoreCase("add"))
+                {
+                    final UUID uuid = player.getUniqueId();
+                    final TSPlayerHandler playerHandler = plugin.getTSPlayerHandler();
+
+                    new BukkitRunnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            if (args.length <= 4)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cToo few arguments! Usage: §e/ts zone add <zone_name> <player> <role>");
+                                return;
+                            }
+
+                            String zoneName = args[2];
+                            String playerName = args[3];
+                            String roleName = args[4];
+
+                            Player bplayer = Bukkit.getPlayer(playerName);
+
+                            if (bplayer == null)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cNo player by that name was found!");
+                                return;
+                            }
+
+                            TSPlayer added = playerHandler.getTSPlayer(bplayer);
+                            TSPlayer tsPlayer = playerHandler.getTSPlayer(uuid);
+                            ZoneRole role = ZoneRole.valueOf(roleName.toUpperCase());
+
+                            if (role == null || role == ZoneRole.ALL)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cInvalid role name!");
+                                return;
+                            }
+
+                            Zone zone = zoneHandler.getZoneByTSPlayerAndName(tsPlayer, zoneName);
+
+                            if (zone == null)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§cNo zone was found by this name.");
+                                return;
+                            }
+
+                            if (zone.getZoneRole(tsPlayer) != null && zone.getZoneRole(tsPlayer) != ZoneRole.ALL)
+                            {
+                                TSZoneMember member = zone.getZoneMemberByTSPlayer(added);
+
+                                member.setRole(role);
+                                player.sendMessage(TerraShield.Prefix + "§aZone role for \"§e" + playerName + "§a\" has been updated!");
+                                return;
+                            }
+
+                            TSZoneMember member = new TSZoneMember(added, zone);
+                            member.setRole(role);
+                            zone.addZoneMember(member);
+
+                            player.sendMessage(TerraShield.Prefix + "§a\"§e" + playerName + "§a\" has been added to the zone as a: §6§l" + role);
+                        }
+                    }.runTaskAsynchronously(plugin);
+                }
+                else if (args[1].equalsIgnoreCase("remove"))
+                {
+                    final UUID uuid = player.getUniqueId();
+
+                    new BukkitRunnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+
+                            TSPlayerHandler playerHandler = plugin.getTSPlayerHandler();
+
+                            if (args.length <= 3)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cToo few arguments! Usage: §e/ts zone remove <zone_name> <player>");
+                                return;
+                            }
+
+                            String zoneName = args[2];
+                            String playerName = args[3];
+
+                            Player bplayer = Bukkit.getPlayer(playerName);
+
+                            if (bplayer == null)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cNo player by that name was found!");
+                                return;
+                            }
+
+                            TSPlayer removed = playerHandler.getTSPlayer(bplayer);
+                            TSPlayer tsPlayer = playerHandler.getTSPlayer(uuid);
+
+                            Zone zone = zoneHandler.getZoneByTSPlayerAndName(tsPlayer, zoneName);
+
+                            if (zone == null)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§cNo zone was found by this name.");
+                                return;
+                            }
+
+                            ZoneRole zoneRole = zone.getZoneRole(removed);
+                            if (zoneRole == null || zoneRole == ZoneRole.ALL || zoneRole == ZoneRole.BANNED)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cPlayer is not part of your zone. Did you mean §e/ts zone ban§c?");
+                                return;
+                            }
+
+                            zone.removeZoneMember(zone.getZoneMemberByTSPlayer(removed));
+                            player.sendMessage(TerraShield.Prefix + "§aPlayer was removed from your zone.");
+                        }
+                    }.runTaskAsynchronously(plugin);
+                }
+                else if (args[1].equalsIgnoreCase("ban"))
+                {
+                    final UUID uuid = player.getUniqueId();
+
+                    new BukkitRunnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+
+                            TSPlayerHandler playerHandler = plugin.getTSPlayerHandler();
+
+                            if (args.length <= 3)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cToo few arguments! Usage: §e/ts zone ban <zone_name> <player>");
+                                return;
+                            }
+
+                            String zoneName = args[2];
+                            String playerName = args[3];
+
+                            Player bplayer = Bukkit.getPlayer(playerName);
+
+                            if (bplayer == null)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cNo player by that name was found!");
+                                return;
+                            }
+
+                            TSPlayer banned = playerHandler.getTSPlayer(bplayer);
+                            TSPlayer tsPlayer = playerHandler.getTSPlayer(uuid);
+
+                            Zone zone = zoneHandler.getZoneByTSPlayerAndName(tsPlayer, zoneName);
+
+                            if (zone == null)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§cNo zone was found by this name.");
+                                return;
+                            }
+
+                            ZoneRole zoneRole = zone.getZoneRole(banned);
+                            if (zoneRole != null && zoneRole != ZoneRole.ALL && zoneRole != ZoneRole.BANNED)
+                            {
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cThis player is added to your zone. Use §e/" + label + " zone remove§c first.");
+                                return;
+                            }
+
+                            if (zoneRole == ZoneRole.BANNED)
+                            {
+                                zone.removeZoneMember(zone.getZoneMemberByTSPlayer(banned));
+
+                                player.sendMessage(TerraShield.Prefix + "§aPlayer was §dun§abanned from your zone.");
+                                bplayer.sendMessage(TerraShield.Prefix + "§dYou were unbanned from §e" + zone.getName() + "§d.");
+                            }
+                            else
+                            {
+                                TSZoneMember member = new TSZoneMember(banned, zone);
+                                member.setRole(ZoneRole.BANNED);
+
+                                zone.addZoneMember(member);
+                                player.sendMessage(TerraShield.Prefix + "§aPlayer was banned from your zone.");
+                                bplayer.sendMessage(TerraShield.Prefix + "§cYou were banned from §e" + zone.getName() + "§c.");
+                            }
+                        }
+                    }.runTaskAsynchronously(plugin);
+                }
                 else
                 {
                     player.sendMessage("§4Error: §cNo zone command found! Try using §e/" + label + " help §cto find the command you're looking for.");
                 }
             }
-        }
-        else if(args[0].equalsIgnoreCase("add"))
-        {
-            if(args.length <= 3)
+            else
             {
-                player.sendMessage(TerraShield.Prefix + "§4Error: §cToo ");
-                return false;
+                player.sendMessage(TerraShield.Prefix + "§4Error: §cToo few arguments! Use §e/" + label + " help §cfor help.");
             }
         }
         else if (args[0].equalsIgnoreCase("help"))
         {
             if (args.length > 1)
             {
-                sendHelp(player, 1);
+                int num = 1;
+
+                try
+                {
+                    num = Integer.parseInt(args[1]);
+                }
+                catch (NumberFormatException nfe)
+                {
+                    player.sendMessage(TerraShield.Prefix + "§eUnknown page requested.");
+                }
+                sendHelp(player, num);
                 return true;
             }
 
@@ -443,10 +652,10 @@ public class TSCommandListener implements CommandExecutor
     {
         List<ZoneFlagSet.ZoneFlag> flags = new ArrayList<>(zone.getZoneFlagSet().getZoneFlags());
 
-        final Object[][] table = new String[flags.size()][];
+        final Object[][] table = new String[flags.size() + 1][];
 
 
-        table[0] = new String[]{"§b§l§nFLAG NAME", "§c§l§nADMIN", "§e§l§nMEMBERS", "§a§l§nALL"};
+        table[0] = new String[]{"§b§l§nFLAG NAME", "§c§l§nADMIN", "§e§l§nMEMBER", "§a§l§nALL"};
 
         for (int i = 0; i < flags.size(); i++)
         {
@@ -460,7 +669,7 @@ public class TSCommandListener implements CommandExecutor
 
         for (final Object[] row : table)
         {
-            player.sendMessage(String.format("%15s%15s%15s\n", row));
+            player.sendMessage(String.format("%15s%15s%15s%15s", row));
         }
     }
 
@@ -486,6 +695,10 @@ public class TSCommandListener implements CommandExecutor
                     player.sendMessage("§8- §a/ts zone flag <zone_name> <flag> <role> <value> §8- §eSets the value of a specific zone.");
                     player.sendMessage("§8- §a/ts zone add <zone_name> <player> <role> §8- §eAdds a player to your zone.");
                     player.sendMessage("§8- §a/ts zone remove <zone_name> <player> §8- §eRemoves a player from your zone.");
+                }
+                else
+                {
+                    player.sendMessage(TerraShield.Prefix + "§ePage not found!");
                 }
             }
         }.runTaskAsynchronously(plugin);

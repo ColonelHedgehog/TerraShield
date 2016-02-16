@@ -99,11 +99,14 @@ public class ZoneHandler
     {
         List<Zone> zones = new ArrayList<>();
 
-        for (Zone zone : zones)
+        //Bukkit.broadcastMessage("Checking for zones...");
+
+        for (Zone zone : this.zones)
         {
+            //Bukkit.broadcastMessage("Zone: " + zone.getName());
+
             ZoneRole role = zone.getZoneRole(tsPlayer);
 
-            //plugin.getLogger().info("Checking for zone " + zone.getName());
             //plugin.getLogger().info("Getting zone role of player " + role);
 
             if (role != null && role != ZoneRole.ALL)
@@ -202,6 +205,11 @@ public class ZoneHandler
         TSLocation upper = zone.getStartLocation().clone(); // X1<X2, Z1>Z2
         TSLocation lower = zone.getEndLocation().clone(); // X2>X1, Z2<Z1
 
+        /*Bukkit.broadcastMessage("locationX >= upperX: " + (location.getX() >= upper.getX()));
+        Bukkit.broadcastMessage("locationX <= lowerX: " + (location.getX() <= lower.getX()));
+        Bukkit.broadcastMessage("locationZ <= upperZ: " + (location.getZ() <= upper.getZ()));
+        Bukkit.broadcastMessage("locationZ >= lowerZ: " + (location.getZ() >= lower.getZ()));*/
+
         return location.getX() >= upper.getX() && location.getX() <= lower.getX() &&
                 location.getZ() <= upper.getZ() && location.getZ() >= lower.getZ();
 
@@ -252,8 +260,13 @@ public class ZoneHandler
             //plugin.getLogger().info("Loading entries from mongo! UUID: " + memberId.toString());
             ZoneRole role = ZoneRole.valueOf((String) mapEntry.getValue());
 
-            TSPlayer player = new TSPlayer(memberId);
-            playerHandler.addTSPlayer(player);
+            TSPlayer player = playerHandler.getTSPlayer(memberId);
+
+            if(player == null)
+            {
+                player = new TSPlayer(memberId);;
+                playerHandler.addTSPlayer(player);
+            }
 
             TSZoneMember zoneMember = new TSZoneMember(player, zone);
             //plugin.getLogger().info("Created new TSPlayer with TSZoneMember " + memberId.toString() + " role " + role.name());

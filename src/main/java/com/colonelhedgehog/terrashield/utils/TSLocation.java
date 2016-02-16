@@ -43,9 +43,9 @@ public class TSLocation
     public TSLocation(UUID worldUID, int x, int y, int z)
     {
         this.worldUID = worldUID;
-        this.x = z;
+        this.x = x;
         this.y = y;
-        this.z = x;
+        this.z = z;
     }
 
     /**

@@ -138,6 +138,12 @@ public class TerraShield extends JavaPlugin
         manager.registerEvents(new EntityDamageListener(this), this);
         manager.registerEvents(new EntityDamageByEntityListener(this), this);
         manager.registerEvents(new PlayerJoinListener(this), this);
+        manager.registerEvents(new PlayerTeleportListener(this), this);
+        manager.registerEvents(new LiquidFlowListener(this), this);
+        manager.registerEvents(new BlockPlaceBreakListener(this), this);
+        manager.registerEvents(new AsyncPlayerChatListener(this), this);
+        manager.registerEvents(new PlayerMoveListener(this), this);
+        manager.registerEvents(new EntityExplodeListener(this), this);
     }
 
     private void registerCommands()

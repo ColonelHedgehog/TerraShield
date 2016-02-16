@@ -36,11 +36,14 @@ public class TSPlayerHandler
         for (TSPlayer tsPlayer : tsPlayers)
         {
             //Bukkit.broadcastMessage("Checking player " + tsPlayer.getUUID().toString());
-            if (tsPlayer.getUUID() == uuid)
+            if (tsPlayer.getUUID().equals(uuid))
             {
+                //Bukkit.broadcastMessage("UUID confirmed! Equals! Return.");
                 return tsPlayer;
             }
         }
+
+        //Bukkit.broadcastMessage("UUID unconfirmed... null :c");
 
         return null;
     }

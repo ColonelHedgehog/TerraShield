@@ -31,6 +31,9 @@ public class PlayerJoinListener implements Listener
         if(player == null)
         {
             handler.addTSPlayer(new TSPlayer(event.getPlayer()));
+            //plugin.getLogger().info("Added new player! " + event.getPlayer().getUniqueId().toString());
         }
+
+        //plugin.getLogger().info("Player joined. List is now: " + handler.getTSPlayers());
     }
 }
