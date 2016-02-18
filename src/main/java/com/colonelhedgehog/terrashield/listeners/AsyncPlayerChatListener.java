@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * TerraShield
@@ -37,6 +36,11 @@ public class AsyncPlayerChatListener implements Listener
 
         final TSPlayer player = playerHandler.getTSPlayer(entity);
 
+        if (zoneHandler.getZones().isEmpty())
+        {
+            return;
+        }
+
         for (Zone zone : zoneHandler.getZones())
         {
             if (zoneHandler.isPointInZone(zone, location))
@@ -45,15 +49,8 @@ public class AsyncPlayerChatListener implements Listener
 
                 if (!flag.getForRole(zone.getZoneRole(player)))
                 {
-                    new BukkitRunnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            entity.sendMessage(TerraShield.Prefix + "§cYou're not allowed to speak here!");
-                            event.setCancelled(true);
-                        }
-                    }.runTask(plugin);
+                    entity.sendMessage(TerraShield.Prefix + "§cYou're not allowed to speak here!");
+                    event.setCancelled(true);
                 }
                 return;
             }

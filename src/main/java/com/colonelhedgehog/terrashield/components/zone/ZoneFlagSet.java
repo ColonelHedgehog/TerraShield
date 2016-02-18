@@ -25,7 +25,7 @@ public class ZoneFlagSet
         zoneFlags.put("interact", new ZoneFlag("interact", true, true, true));
         zoneFlags.put("liquid_flow", new ZoneFlag("liquid_flow", true, true, true));
         zoneFlags.put("pvp", new ZoneFlag("pvp", false, false, true));
-        zoneFlags.put("speak", new ZoneFlag("speak", true, true, true));
+        zoneFlags.put("chat", new ZoneFlag("chat", true, true, true));
 
     }
 

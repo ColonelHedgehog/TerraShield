@@ -33,6 +33,17 @@ public class EntityExplodeListener implements Listener
 
         final ZoneHandler zoneHandler = plugin.getZoneHandler();
 
+        if (zoneHandler.getZones().isEmpty())
+        {
+
+            epicenter.getWorld().
+                    createExplosion(epicenter, size);
+        }
+        else
+        {
+            return;
+        }
+
         event.setCancelled(true);
         new BukkitRunnable()
         {

@@ -62,6 +62,12 @@ public class TSCommandListener implements CommandExecutor
 
         if (args[0].equalsIgnoreCase("tool"))
         {
+            if (!sender.hasPermission("terrashield.command.tool"))
+            {
+                sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " tool§c!");
+                return false;
+            }
+
             FileConfiguration config = plugin.getConfig();
 
             if (args.length == 1)
@@ -81,6 +87,12 @@ public class TSCommandListener implements CommandExecutor
 
             if (args[1].equalsIgnoreCase("set"))
             {
+                if (!sender.hasPermission("terrashield.command.tool.set"))
+                {
+                    sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " tool set§c!");
+                    return false;
+                }
+
                 ItemStack hand = player.getItemInHand();
 
                 if (hand == null)
@@ -99,10 +111,22 @@ public class TSCommandListener implements CommandExecutor
         }
         else if (args[0].equalsIgnoreCase("zone"))
         {
+            if (!sender.hasPermission("terrashield.command.zone"))
+            {
+                sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " zone§c!");
+                return false;
+            }
+
             if (args.length > 1)
             {
                 if (args[1].equalsIgnoreCase("create"))
                 {
+                    if (!sender.hasPermission("terrashield.command.zone.create"))
+                    {
+                        sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " zone create§c!");
+                        return false;
+                    }
+
                     final String name;
 
                     if (args.length > 2)
@@ -181,6 +205,12 @@ public class TSCommandListener implements CommandExecutor
                 }
                 else if (args[1].equalsIgnoreCase("delete"))
                 {
+                    if (!sender.hasPermission("terrashield.command.zone.delete"))
+                    {
+                        sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " zone delete§c!");
+                        return false;
+                    }
+
                     final String name;
 
                     if (args.length > 2)
@@ -219,13 +249,19 @@ public class TSCommandListener implements CommandExecutor
                 }
                 else if (args[1].equals("list"))
                 {
+                    if (!sender.hasPermission("terrashield.command.zone.list"))
+                    {
+                        sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " zone list§c!");
+                        return false;
+                    }
+
                     final TSPlayerHandler tsPlayerHandler = plugin.getTSPlayerHandler();
 
                     final UUID uuid = player.getUniqueId();
 
                     final HashMap<UUID, String> worldNames = new HashMap<>();
 
-                    Bukkit.broadcastMessage("Testing for /ts zone list");
+                    //Bukkit.broadcastMessage("Testing for /ts zone list");
 
                     for (World world : Bukkit.getWorlds())
                     {
@@ -283,6 +319,12 @@ public class TSCommandListener implements CommandExecutor
                 }
                 else if (args[1].equalsIgnoreCase("info"))
                 {
+                    if (!sender.hasPermission("terrashield.command.zone.info"))
+                    {
+                        sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " zone info§c!");
+                        return false;
+                    }
+
                     final UUID uuid = player.getUniqueId();
                     new BukkitRunnable()
                     {
@@ -343,6 +385,12 @@ public class TSCommandListener implements CommandExecutor
                 }
                 else if (args[1].equals("flag"))
                 {
+                    if (!sender.hasPermission("terrashield.command.zone.flag"))
+                    {
+                        sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " zone flag§c!");
+                        return false;
+                    }
+
                     final UUID uuid = player.getUniqueId();
                     new BukkitRunnable()
                     {
@@ -431,6 +479,12 @@ public class TSCommandListener implements CommandExecutor
                 }
                 else if (args[1].equalsIgnoreCase("add"))
                 {
+                    if (!sender.hasPermission("terrashield.command.zone.add"))
+                    {
+                        sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " zone add§c!");
+                        return false;
+                    }
+
                     final UUID uuid = player.getUniqueId();
                     final TSPlayerHandler playerHandler = plugin.getTSPlayerHandler();
 
@@ -494,6 +548,12 @@ public class TSCommandListener implements CommandExecutor
                 }
                 else if (args[1].equalsIgnoreCase("remove"))
                 {
+                    if (!sender.hasPermission("terrashield.command.zone.remove"))
+                    {
+                        sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " zone remove§c!");
+                        return false;
+                    }
+
                     final UUID uuid = player.getUniqueId();
 
                     new BukkitRunnable()
@@ -535,7 +595,7 @@ public class TSCommandListener implements CommandExecutor
                             ZoneRole zoneRole = zone.getZoneRole(removed);
                             if (zoneRole == null || zoneRole == ZoneRole.ALL || zoneRole == ZoneRole.BANNED)
                             {
-                                player.sendMessage(TerraShield.Prefix + "§4Error: §cPlayer is not part of your zone. Did you mean §e/ts zone ban§c?");
+                                player.sendMessage(TerraShield.Prefix + "§4Error: §cPlayer is not a member of your zone. Did you mean §e/ts zone ban§c?");
                                 return;
                             }
 
@@ -546,6 +606,12 @@ public class TSCommandListener implements CommandExecutor
                 }
                 else if (args[1].equalsIgnoreCase("ban"))
                 {
+                    if (!sender.hasPermission("terrashield.command.zone.ban"))
+                    {
+                        sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " zone ban§c!");
+                        return false;
+                    }
+
                     final UUID uuid = player.getUniqueId();
 
                     new BukkitRunnable()
@@ -622,6 +688,12 @@ public class TSCommandListener implements CommandExecutor
         }
         else if (args[0].equalsIgnoreCase("help"))
         {
+            if (!sender.hasPermission("terrashield.command.help"))
+            {
+                sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " help§c!");
+                return false;
+            }
+
             if (args.length > 1)
             {
                 int num = 1;

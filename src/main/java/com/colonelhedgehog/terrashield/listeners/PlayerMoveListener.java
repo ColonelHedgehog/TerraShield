@@ -31,7 +31,7 @@ public class PlayerMoveListener implements Listener
     public void onPlayerMove(final PlayerMoveEvent event)
     {
         final Location from = event.getFrom();
-        TSLocation to = new TSLocation(event.getTo());
+        final TSLocation to = new TSLocation(event.getTo());
 
         final Player bplayer = event.getPlayer();
         final TSPlayer player = plugin.getTSPlayerHandler().getTSPlayer(bplayer.getUniqueId());
@@ -45,19 +45,24 @@ public class PlayerMoveListener implements Listener
 
                 for (Zone zone : zoneHandler.getZones())
                 {
-                    ZoneFlagSet.ZoneFlag flag = zone.getZoneFlagSet().getZoneFlagByName("enter");
-
-                    if(!flag.getForRole(zone.getZoneRole(player)))
+                    if(zoneHandler.isPointInZone(zone, to))
                     {
-                        new BukkitRunnable()
+                        ZoneFlagSet.ZoneFlag flag = zone.getZoneFlagSet().getZoneFlagByName("enter");
+
+                        if (!flag.getForRole(zone.getZoneRole(player)))
                         {
-                            @Override
-                            public void run()
+                            new BukkitRunnable()
                             {
-                                bplayer.sendMessage(TerraShield.Prefix + "§cYou're not allowed to enter here!");
-                                bplayer.teleport(from);
-                            }
-                        }.runTask(plugin);
+                                @Override
+                                public void run()
+                                {
+                                    bplayer.sendMessage(TerraShield.Prefix + "§cYou're not allowed to enter here!");
+                                    bplayer.damage(1);
+                                }
+                            }.runTask(plugin);
+                        }
+
+                        return;
                     }
                 }
             }

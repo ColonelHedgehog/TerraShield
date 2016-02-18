@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
@@ -34,6 +35,8 @@ public class BlockPlaceBreakListener implements Listener
     {
         final Block oldBlock = event.getBlock();
         final Block newBlock = event.getBlockPlaced();
+        final Material toMat = newBlock.getState().getType();
+        final MaterialData toData = newBlock.getState().getData();
 
         final TSLocation to = new TSLocation(newBlock.getLocation());
 
@@ -44,7 +47,10 @@ public class BlockPlaceBreakListener implements Listener
 
         final TSPlayer player = plugin.getTSPlayerHandler().getTSPlayer(bplayer);
 
-        event.setCancelled(true);
+        if (zoneHandler.getZones().isEmpty())
+        {
+            return;
+        }
 
         new BukkitRunnable()
         {
@@ -65,19 +71,12 @@ public class BlockPlaceBreakListener implements Listener
                                 if (!flag.getForRole(zone.getZoneRole(player)))
                                 {
                                     bplayer.sendMessage(TerraShield.Prefix + "§cYou're not allowed to place blocks here!");
-                                }
-                                else
-                                {
-                                    if (hand.getAmount() > 1)
-                                    {
-                                        hand.setAmount(hand.getAmount() - 1);
-                                        bplayer.setItemInHand(hand);
-                                    }
-                                    else
-                                    {
-                                        oldBlock.getState().setType(newBlock.getState().getType());
-                                        oldBlock.getState().setData(newBlock.getState().getData());
-                                    }
+
+                                    Block toBlock = to.getBukkitLocation().getBlock();
+                                    toBlock.setType(Material.AIR);
+
+                                    hand.setAmount(hand.getAmount() + 1);
+                                    bplayer.setItemInHand(hand);
                                 }
                             }
                         }.runTask(plugin);
@@ -90,7 +89,7 @@ public class BlockPlaceBreakListener implements Listener
     }
 
     @EventHandler
-    public void onBlockPlaceBreak(BlockBreakEvent event)
+    public void onBlockBreak(BlockBreakEvent event)
     {
         final Block broken = event.getBlock();
 
@@ -128,7 +127,8 @@ public class BlockPlaceBreakListener implements Listener
                                 }
                                 else
                                 {
-                                    broken.breakNaturally(item);
+                                    Block block = to.getBukkitLocation().getBlock();
+                                    block.breakNaturally(item);
                                 }
                             }
                         }.runTask(plugin);
