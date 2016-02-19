@@ -6,6 +6,7 @@ import com.colonelhedgehog.terrashield.handlers.TSPlayerHandler;
 import com.colonelhedgehog.terrashield.handlers.ZoneHandler;
 import com.colonelhedgehog.terrashield.listeners.*;
 import com.colonelhedgehog.terrashield.mongodb.Driver;
+import com.colonelhedgehog.terrashield.tasks.ZoneTask;
 import com.mongodb.MongoCredential;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -29,6 +30,7 @@ public class TerraShield extends JavaPlugin
     private Driver driver;
     private ZoneHandler zoneHandler;
     private TSPlayerHandler tsPlayerHandler;
+    private ZoneTask zoneTask;
 
     @Override
     public void onEnable()
@@ -48,6 +50,7 @@ public class TerraShield extends JavaPlugin
         connectToMongoDB();
 
         // Initialized in connectToMongoDB() -> zoneHandler = new ZoneHandler(this, driver);
+        // Same for running ZoneTask
     }
 
     @Override
@@ -62,7 +65,7 @@ public class TerraShield extends JavaPlugin
 
                 MongoCollection<Document> zones = driver.getDatabase().getCollection("zones");
 
-                for (Zone zone : zoneHandler.getZones())
+                for (Zone zone : zoneHandler.getAllZones())
                 {
                     zoneHandler.saveZoneToCollection(zones, zone, time);
                 }
@@ -118,6 +121,8 @@ public class TerraShield extends JavaPlugin
                 if (exists)
                 {
                     zoneHandler = new ZoneHandler(instance, driver);
+                    zoneTask = new ZoneTask(instance);
+                    zoneTask.runTaskTimerAsynchronously(instance, 0, 3);
                     zoneHandler.loadZonesFromCollection(ts_m.getCollection("zones"));
                 }
                 else
@@ -142,7 +147,6 @@ public class TerraShield extends JavaPlugin
         manager.registerEvents(new LiquidFlowListener(this), this);
         manager.registerEvents(new BlockPlaceBreakListener(this), this);
         manager.registerEvents(new AsyncPlayerChatListener(this), this);
-        manager.registerEvents(new PlayerMoveListener(this), this);
         manager.registerEvents(new EntityExplodeListener(this), this);
     }
 
@@ -169,5 +173,10 @@ public class TerraShield extends JavaPlugin
     public TSPlayerHandler getTSPlayerHandler()
     {
         return tsPlayerHandler;
+    }
+
+    public ZoneTask getZoneTask()
+    {
+        return zoneTask;
     }
 }

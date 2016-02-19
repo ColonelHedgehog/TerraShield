@@ -173,7 +173,7 @@ public class TSCommandListener implements CommandExecutor
                             player.sendMessage(TerraShield.Prefix + "§eValidating zone. It will be checked against other zones nearby to be sure it's not overlapping any of them. This may take a little bit.");
 
 
-                            for (Zone zone : zoneHandler.getZonesByTSPlayer(tsPlayer, true))
+                            for (Zone zone : zoneHandler.getZonesByOwner(tsPlayer))
                             {
                                 if (zone.getName().equalsIgnoreCase(name))
                                 {
@@ -196,7 +196,7 @@ public class TSCommandListener implements CommandExecutor
                             zone.addZoneMember(zoneMember);
                             zone.setName(name);
 
-                            zoneHandler.loadZone(zone);
+                            zoneHandler.loadZone(tsPlayer.getUUID(), zone);
                             player.sendMessage("§aThis zone does not overlap another zone. It has been created!");
                             tsPlayer.setSelecting(false);
 
@@ -242,14 +242,14 @@ public class TSCommandListener implements CommandExecutor
                                 return;
                             }
 
-                            zoneHandler.removeZone(zone);
+                            zoneHandler.removeZone(tsPlayer.getUUID(), zone);
                             player.sendMessage(TerraShield.Prefix + "§aZone \"§e" + zone.getName() + "§a\" was successfully deleted.");
                         }
                     }.runTaskAsynchronously(plugin);
                 }
                 else if (args[1].equals("list"))
                 {
-                    if (!sender.hasPermission("terrashield.command.zone.list"))
+                    if (/*!sender.hasPermission("terrashield.command.zone.list")*/ true)
                     {
                         sender.sendMessage(TerraShield.Prefix + "§4Error: §cYou're not allowed to use §e/" + label + " zone list§c!");
                         return false;
@@ -280,7 +280,7 @@ public class TSCommandListener implements CommandExecutor
 
                                 //Bukkit.broadcastMessage("Got TS player: " + tsPlayer);
 
-                                final List<Zone> zones = new ArrayList<>(zoneHandler.getZonesByTSPlayer(tsPlayer, false));
+                                final List<Zone> zones = zoneHandler.getZonesByOwner(tsPlayer);
 
                                 //Bukkit.broadcastMessage("Got zones: " + zones);
 

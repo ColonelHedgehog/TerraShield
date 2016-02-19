@@ -14,6 +14,7 @@ public class TSPlayer
 {
     private UUID uuid;
 
+    private TSLocation location;
     private TSLocation currLoc1;
     private TSLocation currLoc2;
     private boolean selecting;

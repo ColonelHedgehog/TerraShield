@@ -1,0 +1,21 @@
+## MongoDB Settings ##
+
+MongoDB:
+  IP: ''
+  Port: 00000
+  Database: ''
+  Username: ''
+  Password: ''
+
+## Global Settings ##
+Settings:
+
+  # Zone Marker Tool: The item used to designate a TerraShield zone.
+  Zone Marker Tool:
+    Material: BLAZE_ROD
+    Data: 0
+
+  Limits:
+    Count: 10 # The limit of how many zones a single player may make.
+    Size: 1000000 # The volume limit (b*h*l) per zone in blocks/meters.
+    Members: 10 # The limit of how many members a single player may add to his zone.

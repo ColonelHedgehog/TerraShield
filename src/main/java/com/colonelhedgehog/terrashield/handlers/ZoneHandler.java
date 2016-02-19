@@ -16,10 +16,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * TerraShield
@@ -28,7 +25,7 @@ import java.util.UUID;
 public class ZoneHandler
 {
     private TerraShield plugin;
-    private List<Zone> zones;
+    private HashMap<UUID, List<Zone>> zones;
     private Driver driver;
 
     public ZoneHandler(TerraShield plugin, Driver driver)
@@ -36,12 +33,19 @@ public class ZoneHandler
         this.plugin = plugin;
         this.driver = driver;
 
-        this.zones = new ArrayList<>();
+        this.zones = new HashMap<>();
     }
 
-    public List<Zone> getZones()
+    public List<Zone> getAllZones()
     {
-        return this.zones;
+        List<Zone> zones = new ArrayList<>();
+
+        for (List<Zone> collected : this.zones.values())
+        {
+            zones.addAll(collected);
+        }
+
+        return zones;
     }
 
     public boolean isZoneMarkerTool(ItemStack itemStack)
@@ -54,20 +58,32 @@ public class ZoneHandler
         return getZoneMarkerTool().isSimilar(itemStack);
     }
 
-    public void loadZone(Zone zone)
+    public void loadZone(UUID owner, Zone zone)
     {
-        if (!zones.contains(zone))
+        List<Zone> zones = new ArrayList<>();
+
+        if (this.zones.containsKey(owner))
         {
-            zones.add(zone);
+            zones = this.zones.get(owner);
         }
 
-        //todo: zone.startZoneTask();
+        zones.add(zone);
+
+        this.zones.put(owner, zones);
     }
 
-    public void removeZone(Zone zone)
+    public void removeZone(UUID owner, Zone zone)
     {
-        // todo: zone removal
-        zones.remove(zone);
+        if (!this.zones.containsKey(owner))
+        {
+            return;
+        }
+
+        List<Zone> zoneList = this.zones.get(owner);
+
+        zoneList.remove(zone);
+
+        this.zones.put(owner, zoneList);
     }
 
     public ItemStack getZoneMarkerTool()
@@ -95,34 +111,11 @@ public class ZoneHandler
         return itemStack;
     }
 
-    public List<Zone> getZonesByTSPlayer(TSPlayer tsPlayer, boolean ownerOnly)
+    public List<Zone> getZonesByOwner(TSPlayer tsPlayer)
     {
-        List<Zone> zones = new ArrayList<>();
-
         //Bukkit.broadcastMessage("Checking for zones...");
 
-        for (Zone zone : this.zones)
-        {
-            //Bukkit.broadcastMessage("Zone: " + zone.getName());
-
-            ZoneRole role = zone.getZoneRole(tsPlayer);
-
-            //plugin.getLogger().info("Getting zone role of player " + role);
-
-            if (role != null && role != ZoneRole.ALL)
-            {
-                if (ownerOnly && role != ZoneRole.OWNER)
-                {
-                    continue;
-                }
-
-                //plugin.getLogger().info("Role was owner so adding");
-
-                zones.add(zone);
-            }
-        }
-
-        return zones;
+        return this.zones.get(tsPlayer.getUUID());
     }
 
     /**
@@ -134,7 +127,7 @@ public class ZoneHandler
      */
     public boolean verifyCanCreate(TSLocation location1, TSLocation location2)
     {
-        for (Zone zone : zones)
+        for (Zone zone : getAllZones())
         {
             TSLocation location3 = zone.getStartLocation();
             TSLocation location4 = zone.getEndLocation();
@@ -217,16 +210,13 @@ public class ZoneHandler
 
     public void loadZonesFromCollection(MongoCollection<Document> zoneDocs)
     {
-        List<Zone> zones = new ArrayList<>();
         for (Document zoneDoc : zoneDocs.find().into(new ArrayList<Document>()))
         {
-            zones.add(loadZoneFromCollection(zoneDoc));
+            loadZoneFromCollection(zoneDoc);
         }
-
-        this.zones.addAll(zones);
     }
 
-    public Zone loadZoneFromCollection(Document zoneDoc)
+    public void loadZoneFromCollection(Document zoneDoc)
     {
         String name = zoneDoc.getString("name");
 
@@ -262,9 +252,10 @@ public class ZoneHandler
 
             TSPlayer player = playerHandler.getTSPlayer(memberId);
 
-            if(player == null)
+            if (player == null)
             {
-                player = new TSPlayer(memberId);;
+                player = new TSPlayer(memberId);
+                ;
                 playerHandler.addTSPlayer(player);
             }
 
@@ -296,7 +287,9 @@ public class ZoneHandler
             flag.setAdmins(adminFlag);
         }
 
-        return zone;
+        // There will only be one owner.
+        TSPlayer owner = zone.getMembersWithRole(ZoneRole.OWNER).get(0).getPlayer();
+        loadZone(owner.getUUID(), zone);
     }
 
     public void saveZoneToCollection(MongoCollection<Document> zones, Zone zone, long time)
@@ -316,7 +309,7 @@ public class ZoneHandler
 
     public Zone getZoneByTSPlayerAndName(TSPlayer tsPlayer, String name)
     {
-        for (Zone search : getZonesByTSPlayer(tsPlayer, true))
+        for (Zone search : getZonesByOwner(tsPlayer))
         {
             if (search.getName().startsWith(name))
             {

@@ -67,7 +67,7 @@ public class PlayerInteractListener implements Listener
                 @Override
                 public void run()
                 {
-                    for (final Zone zone : zoneHandler.getZones())
+                    for (final Zone zone : zoneHandler.getAllZones())
                     {
                         if (zoneHandler.isPointInZone(zone, location))
                         {
@@ -134,7 +134,7 @@ public class PlayerInteractListener implements Listener
         // Prevent unnecessary looping.
         if (hasZones)
         {
-            zones = zoneHandler.getZonesByTSPlayer(tsPlayer, true);
+            zones = zoneHandler.getZonesByOwner(tsPlayer);
         }
 
         boolean tooMany = hasZones && zones.size() > maxZoneCount;

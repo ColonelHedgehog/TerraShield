@@ -50,7 +50,7 @@ public class EntityDamageByEntityListener implements Listener
             @Override
             public void run()
             {
-                for (final Zone zone : zoneHandler.getZones())
+                for (final Zone zone : zoneHandler.getAllZones())
                 {
                     if (zoneHandler.isPointInZone(zone, location))
                     {

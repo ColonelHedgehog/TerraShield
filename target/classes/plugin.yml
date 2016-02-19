@@ -1,0 +1,8 @@
+name: TerraShield
+main: com.colonelhedgehog.terrashield.core.TerraShield
+version: 0.0.1
+description: A simple anti-grief protection plugin.
+commands:
+  terrashield:
+    description: 'TerraShield''s base command. Use /terrashield help for help.'
+    aliases: [ts, tshield]

@@ -36,12 +36,7 @@ public class AsyncPlayerChatListener implements Listener
 
         final TSPlayer player = playerHandler.getTSPlayer(entity);
 
-        if (zoneHandler.getZones().isEmpty())
-        {
-            return;
-        }
-
-        for (Zone zone : zoneHandler.getZones())
+        for (Zone zone : zoneHandler.getAllZones())
         {
             if (zoneHandler.isPointInZone(zone, location))
             {

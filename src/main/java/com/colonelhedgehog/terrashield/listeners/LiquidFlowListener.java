@@ -42,7 +42,7 @@ public class LiquidFlowListener implements Listener
                 @Override
                 public void run()
                 {
-                    for (Zone zone : zoneHandler.getZones())
+                    for (Zone zone : zoneHandler.getAllZones())
                     {
                         if (zoneHandler.isPointInZone(zone, location))
                         {

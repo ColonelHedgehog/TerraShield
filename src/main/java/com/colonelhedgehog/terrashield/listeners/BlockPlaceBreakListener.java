@@ -47,17 +47,13 @@ public class BlockPlaceBreakListener implements Listener
 
         final TSPlayer player = plugin.getTSPlayerHandler().getTSPlayer(bplayer);
 
-        if (zoneHandler.getZones().isEmpty())
-        {
-            return;
-        }
 
         new BukkitRunnable()
         {
             @Override
             public void run()
             {
-                for (final Zone zone : zoneHandler.getZones())
+                for (final Zone zone : zoneHandler.getAllZones())
                 {
                     if (zoneHandler.isPointInZone(zone, to))
                     {
@@ -110,7 +106,7 @@ public class BlockPlaceBreakListener implements Listener
             @Override
             public void run()
             {
-                for (final Zone zone : zoneHandler.getZones())
+                for (final Zone zone : zoneHandler.getAllZones())
                 {
                     if (zoneHandler.isPointInZone(zone, to))
                     {

@@ -33,7 +33,7 @@ public class EntityExplodeListener implements Listener
 
         final ZoneHandler zoneHandler = plugin.getZoneHandler();
 
-        if (zoneHandler.getZones().isEmpty())
+        if (zoneHandler.getAllZones().isEmpty())
         {
 
             epicenter.getWorld().
@@ -50,7 +50,7 @@ public class EntityExplodeListener implements Listener
             @Override
             public void run()
             {
-                for (Zone zone : zoneHandler.getZones())
+                for (Zone zone : zoneHandler.getAllZones())
                 {
                     if (zoneHandler.isPointInZone(zone, location))
                     {
